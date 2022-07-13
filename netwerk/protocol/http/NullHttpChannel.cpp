@@ -123,6 +123,16 @@ NullHttpChannel::SetReferrerInfoWithoutClone(nsIReferrerInfo* aReferrerInfo) {
 }
 
 NS_IMETHODIMP
+NullHttpChannel::GetSecureWebAuthnParams(nsACString& webauthn_req_) {
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
+NullHttpChannel::SetSecureWebAuthnParams(const nsACString& webauthn_req_) {
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP
 NullHttpChannel::GetRequestHeader(const nsACString& aHeader,
                                   nsACString& _retval) {
   _retval.Truncate();

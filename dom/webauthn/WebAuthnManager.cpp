@@ -21,6 +21,8 @@
 #include "mozilla/ipc/BackgroundChild.h"
 #include "mozilla/ipc/PBackgroundChild.h"
 #include "authenticator/src/u2fhid-capi.h"
+#include "mozilla/dom/Navigator.h"
+#include "nsIHttpChannel.h"
 
 #ifdef OS_WIN
 #  include "WinWebAuthnManager.h"
@@ -220,8 +222,11 @@ WebAuthnManager::~WebAuthnManager() {
 
 already_AddRefed<Promise> WebAuthnManager::MakeCredential(
     const PublicKeyCredentialCreationOptions& aOptions,
-    const Optional<OwningNonNull<AbortSignal>>& aSignal, ErrorResult& aError) {
+    const Optional<OwningNonNull<AbortSignal>>& aSignal, ErrorResult& aError, nsCString webauthn_req) {
   MOZ_ASSERT(NS_IsMainThread());
+
+  printf("In webauthn API");
+  printf("%s\n",  webauthn_req.get());
 
   nsCOMPtr<nsIGlobalObject> global = do_QueryInterface(mParent);
 
@@ -248,6 +253,26 @@ already_AddRefed<Promise> WebAuthnManager::MakeCredential(
   if (aSignal.WasPassed() && aSignal.Value().Aborted()) {
     promise->MaybeReject(NS_ERROR_DOM_ABORT_ERR);
     return promise.forget();
+  }
+
+  nsCOMPtr<Document> doc = mParent->GetDoc();
+  MOZ_ASSERT(doc);
+
+  if (doc) {
+    nsCOMPtr<nsIHttpChannel> httpChannel = do_QueryInterface(doc->GetChannel());
+    if (httpChannel) {
+      nsCString webauthn_req_temp;
+      // nsresult rv = httpChannel->GetSecureWebAuthnParams(webauthn_req_temp);
+      // nsresult rv = httpChannel->GetRequestHeader("User-Agent"_ns, webauthn_req_temp);
+      nsresult  rv = httpChannel->GetResponseHeader("webauthn_req"_ns, webauthn_req_temp);
+      printf("Innnnnn WEBAUTHNNNN ???????????????????");
+      if (NS_SUCCEEDED(rv)) {
+        printf("%s\n", webauthn_req_temp.get());
+        printf("polo");
+      } else {
+        printf("unsuccesful");
+      }
+    }
   }
 
   nsString origin;

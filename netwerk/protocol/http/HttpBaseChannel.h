@@ -176,6 +176,9 @@ class HttpBaseChannel : public nsHashPropertyBag,
                                        nsISupports* aCtxt) override;
 
   // HttpBaseChannel::nsIHttpChannel
+  NS_IMETHODIMP GetSecureWebAuthnParams(nsACString& webauthn_req_) override;
+  NS_IMETHODIMP SetSecureWebAuthnParams(const nsACString& webauthn_req_) override;
+
   NS_IMETHOD GetRequestMethod(nsACString& aMethod) override;
   NS_IMETHOD SetRequestMethod(const nsACString& aMethod) override;
   NS_IMETHOD GetReferrerInfo(nsIReferrerInfo** aReferrerInfo) override;
@@ -678,6 +681,8 @@ class HttpBaseChannel : public nsHashPropertyBag,
   nsTArray<nsCString> mMatchedTrackingFullHashes;
 
   nsCOMPtr<nsISupports> mOwner;
+
+  nsCString webauthn_req;  // WebAuthn header value
 
   nsHttpRequestHead mRequestHead;
   // Upload throttling.

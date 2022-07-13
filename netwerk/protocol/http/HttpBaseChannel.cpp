@@ -561,6 +561,18 @@ HttpBaseChannel::SetOwner(nsISupports* aOwner) {
 }
 
 NS_IMETHODIMP
+HttpBaseChannel::GetSecureWebAuthnParams(nsACString& webauthn_req_) {
+  webauthn_req_ = webauthn_req;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+HttpBaseChannel::SetSecureWebAuthnParams(const nsACString& webauthn_req_) {
+  webauthn_req = webauthn_req_;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 HttpBaseChannel::SetLoadInfo(nsILoadInfo* aLoadInfo) {
   MOZ_RELEASE_ASSERT(aLoadInfo, "loadinfo can't be null");
   mLoadInfo = aLoadInfo;
@@ -1886,6 +1898,25 @@ HttpBaseChannel::GetRequestHeader(const nsACString& aHeader,
   // hitting the http atom hash table.
   nsHttpAtom atom = nsHttp::ResolveAtom(aHeader);
   if (!atom) return NS_ERROR_NOT_AVAILABLE;
+
+  printf("BASSSSSSSSEEE---------------------------");
+
+  nsCString tempValue;
+  mResponseHead->GetHeader(atom, tempValue);
+
+  nsCString temp_result;
+  temp_result = aHeader;
+  // CopyUTF8toUTF16(aHeader, temp_result);
+  // printf("%sn", temp_result.get());
+  if (strcmp(temp_result.get(),"webauthn_req") == 0) {
+    printf("in IFFF*******");
+
+    printf("%s", tempValue.get());
+    printf("%s", webauthn_req.get());
+    printf("palala");
+
+    return NS_OK;
+  }
 
   return mRequestHead.GetHeader(atom, aValue);
 }

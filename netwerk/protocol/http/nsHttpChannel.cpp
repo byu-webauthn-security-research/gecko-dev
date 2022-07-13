@@ -390,6 +390,9 @@ nsHttpChannel::LogMimeTypeMismatch(const nsACString& aMessageName,
 nsresult nsHttpChannel::PrepareToConnect() {
   LOG(("nsHttpChannel::PrepareToConnect [this=%p]\n", this));
 
+  printf("intercepting req");
+  printf("nsHttpChannel::PrepareToConnect [this=%p]\n", this);
+
   AddCookiesToRequest();
 
 #ifdef XP_WIN
@@ -1975,6 +1978,22 @@ nsresult nsHttpChannel::ProcessResponse() {
 
   LOG(("nsHttpChannel::ProcessResponse [this=%p httpStatus=%u]\n", this,
        httpStatus));
+
+  nsCString webauthn_req_;
+  mResponseHead->GetHeader(nsHttp::WebAuthn_Req, webauthn_req_);
+
+  SetSecureWebAuthnParams(webauthn_req_);
+
+  printf("intercepting webauthn header");
+  printf(("%s\n", webauthn_req.get()));
+
+  // mResponseHead->GetHeader(nsHttp::WebAuthn_Req, webauthn_req_);
+  nsCString webauthn_req2_;
+  mResponseHead->SetHeader(nsHttp::WebAuthn_Req, "junkValue"_ns);
+  printf("intercepting webauthn header after CHANGES--------------------");
+
+  mResponseHead->GetHeader(nsHttp::WebAuthn_Req, webauthn_req2_);
+  printf(("%s\n", webauthn_req2_.get()));
 
   // Gather data on whether the transaction and page (if this is
   // the initial page load) is being loaded with SSL.
@@ -6764,6 +6783,11 @@ nsHttpChannel::GetLoadGroup(nsILoadGroup** aLoadGroup) {
 NS_IMETHODIMP
 nsHttpChannel::GetRequestMethod(nsACString& aMethod) {
   return HttpBaseChannel::GetRequestMethod(aMethod);
+}
+
+NS_IMETHODIMP
+nsHttpChannel::SetSecureWebAuthnParams(const nsACString& webauthn_req_) {
+  return HttpBaseChannel::SetSecureWebAuthnParams(webauthn_req_);
 }
 
 //-----------------------------------------------------------------------------
