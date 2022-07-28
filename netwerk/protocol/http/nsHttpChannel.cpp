@@ -8,7 +8,6 @@
 #include "HttpLog.h"
 
 #include <inttypes.h>
-#include <string>
 
 #include "DocumentChannelParent.h"
 #include "mozilla/MozPromiseInlines.h"  // For MozPromise::FromDomPromise
@@ -391,9 +390,6 @@ nsHttpChannel::LogMimeTypeMismatch(const nsACString& aMessageName,
 
 nsresult nsHttpChannel::PrepareToConnect() {
   LOG(("nsHttpChannel::PrepareToConnect [this=%p]\n", this));
-
-  printf("intercepting req");
-  printf("nsHttpChannel::PrepareToConnect [this=%p]\n", this);
 
   AddCookiesToRequest();
 

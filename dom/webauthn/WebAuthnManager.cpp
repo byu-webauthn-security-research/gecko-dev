@@ -21,7 +21,6 @@
 #include "mozilla/ipc/BackgroundChild.h"
 #include "mozilla/ipc/PBackgroundChild.h"
 #include "authenticator/src/u2fhid-capi.h"
-#include "mozilla/dom/Navigator.h"
 #include "nsIHttpChannel.h"
 #include "nsHttpHandler.h"
 
