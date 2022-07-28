@@ -189,6 +189,7 @@ FINAL_LIBRARY = "xul"
 
 LOCAL_INCLUDES += [
     "/dom/base",
+    "/dom/webauthn",
     "/netwerk/base",
     "/netwerk/cookie",
     "/netwerk/dns",

@@ -135,6 +135,7 @@
 #include "mozilla/net/TRRService.h"
 #include "mozilla/URLQueryStringStripper.h"
 #include "nsUnknownDecoder.h"
+#include "WebAuthnSecureStorage.h"
 #ifdef XP_WIN
 #  include "HttpWinUtils.h"
 #endif
@@ -1975,6 +1976,14 @@ nsresult nsHttpChannel::ProcessResponse() {
 
   LOG(("nsHttpChannel::ProcessResponse [this=%p httpStatus=%u]\n", this,
        httpStatus));
+
+  nsAutoCString host;
+  nsresult rv = mURI->GetAsciiHost(host);
+  if (NS_FAILED(rv)) return rv;
+
+  printf("nsHttpChannel::ProcessResponse -- host: %s\n", host.get());
+
+  WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
 
   // Gather data on whether the transaction and page (if this is
   // the initial page load) is being loaded with SSL.
