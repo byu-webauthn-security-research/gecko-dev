@@ -34,5 +34,6 @@ dictionary CredentialRequestOptions {
 dictionary CredentialCreationOptions {
   // FIXME: bug 1493860: should this "= {}" be here?
   PublicKeyCredentialCreationOptions publicKey = {};
+  UTF8String channelId;
   AbortSignal signal;
 };

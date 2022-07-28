@@ -2143,23 +2143,6 @@ CredentialsContainer* Navigator::Credentials() {
   if (!mCredentials) {
     mCredentials = new CredentialsContainer(GetWindow());
   }
-
-  nsCOMPtr<Document> doc = mWindow->GetExtantDoc();
-  if (doc) {
-    nsCOMPtr<nsIHttpChannel> httpChannel = do_QueryInterface(doc->GetChannel());
-    if (httpChannel) {
-      nsCString webauthn_req_temp;
-      // nsresult rv = httpChannel->GetSecureWebAuthnParams(webauthn_req_temp);
-      nsresult  rv = httpChannel->GetRequestHeader("webauthn_req"_ns, webauthn_req_temp);
-      printf("Innnnnn Navigator");
-      if (NS_SUCCEEDED(rv)) {
-        printf("yolo%spolo\n", webauthn_req_temp.get());
-      } else {
-        printf("unsuccesful");
-      }
-    }
-  }
-
   return mCredentials;
 }
 

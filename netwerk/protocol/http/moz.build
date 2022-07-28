@@ -66,6 +66,7 @@ EXPORTS.mozilla.net += [
     "HttpTransactionParent.h",
     "HttpTransactionShell.h",
     "nsAHttpTransaction.h",
+    "nsHttpHandler.h",
     "nsServerTiming.h",
     "NullHttpChannel.h",
     "NullHttpTransaction.h",

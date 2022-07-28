@@ -8,6 +8,7 @@
 #include "HttpLog.h"
 
 #include <inttypes.h>
+#include <string>
 
 #include "DocumentChannelParent.h"
 #include "mozilla/MozPromiseInlines.h"  // For MozPromise::FromDomPromise
@@ -313,6 +314,7 @@ nsHttpChannel::nsHttpChannel() : HttpAsyncAborter<nsHttpChannel>(this) {
 
 nsHttpChannel::~nsHttpChannel() {
   LOG(("Destroying nsHttpChannel [this=%p]\n", this));
+  printf("Destroying nsHttpChannel [this=%p]\n", this);
 
   if (mAuthProvider) {
     DebugOnly<nsresult> rv = mAuthProvider->Disconnect(NS_ERROR_ABORT);
@@ -1979,21 +1981,18 @@ nsresult nsHttpChannel::ProcessResponse() {
   LOG(("nsHttpChannel::ProcessResponse [this=%p httpStatus=%u]\n", this,
        httpStatus));
 
-  nsCString webauthn_req_;
-  mResponseHead->GetHeader(nsHttp::WebAuthn_Req, webauthn_req_);
+  nsCString webauthn_req_initial;
+  mResponseHead->GetHeader(nsHttp::WebAuthn_Req, webauthn_req_initial);
 
-  SetSecureWebAuthnParams(webauthn_req_);
+  SetSecureWebAuthnParams(webauthn_req_initial);
 
-  printf("intercepting webauthn header");
-  printf(("%s\n", webauthn_req.get()));
+  printf("nsHttpChannel::ProcessResponse -- webauthn_req header: %s\n", webauthn_req.get());
 
-  // mResponseHead->GetHeader(nsHttp::WebAuthn_Req, webauthn_req_);
-  nsCString webauthn_req2_;
-  mResponseHead->SetHeader(nsHttp::WebAuthn_Req, "junkValue"_ns);
-  printf("intercepting webauthn header after CHANGES--------------------");
+  mResponseHead->SetHeader(nsHttp::WebAuthn_Req, nsCString(std::to_string(mChannelId)));
 
-  mResponseHead->GetHeader(nsHttp::WebAuthn_Req, webauthn_req2_);
-  printf(("%s\n", webauthn_req2_.get()));
+  nsCString webauthn_req_post_change;
+  mResponseHead->GetHeader(nsHttp::WebAuthn_Req, webauthn_req_post_change);
+  printf("nsHttpChannel::ProcessResponse -- webauthn_req header after change: %s\n", webauthn_req_post_change.get());
 
   // Gather data on whether the transaction and page (if this is
   // the initial page load) is being loaded with SSL.

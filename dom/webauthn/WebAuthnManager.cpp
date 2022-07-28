@@ -23,6 +23,7 @@
 #include "authenticator/src/u2fhid-capi.h"
 #include "mozilla/dom/Navigator.h"
 #include "nsIHttpChannel.h"
+#include "nsHttpHandler.h"
 
 #ifdef OS_WIN
 #  include "WinWebAuthnManager.h"
@@ -221,12 +222,13 @@ WebAuthnManager::~WebAuthnManager() {
 }
 
 already_AddRefed<Promise> WebAuthnManager::MakeCredential(
-    const PublicKeyCredentialCreationOptions& aOptions,
-    const Optional<OwningNonNull<AbortSignal>>& aSignal, ErrorResult& aError, nsCString webauthn_req) {
+    const PublicKeyCredentialCreationOptions& aOptions, const Optional<nsCString>& aChannelId,
+    const Optional<OwningNonNull<AbortSignal>>& aSignal, ErrorResult& aError) {
   MOZ_ASSERT(NS_IsMainThread());
 
-  printf("In webauthn API");
-  printf("%s\n",  webauthn_req.get());
+  printf("WebAuthnManager::MakeCredential -- entered\n");
+  printf("channelId WasPassed: %d\n", aChannelId.WasPassed());
+  printf("channelId: %s\n", aChannelId.Value().get());
 
   nsCOMPtr<nsIGlobalObject> global = do_QueryInterface(mParent);
 
@@ -255,23 +257,19 @@ already_AddRefed<Promise> WebAuthnManager::MakeCredential(
     return promise.forget();
   }
 
-  nsCOMPtr<Document> doc = mParent->GetDoc();
-  MOZ_ASSERT(doc);
+  already_AddRefed<net::nsHttpHandler> handler = net::nsHttpHandler::GetInstance();
+  nsWeakPtr httpChannelPtr = handler.take()->GetWeakHttpChannel(atoi(aChannelId.Value().get()));
 
-  if (doc) {
-    nsCOMPtr<nsIHttpChannel> httpChannel = do_QueryInterface(doc->GetChannel());
-    if (httpChannel) {
-      nsCString webauthn_req_temp;
-      // nsresult rv = httpChannel->GetSecureWebAuthnParams(webauthn_req_temp);
-      // nsresult rv = httpChannel->GetRequestHeader("User-Agent"_ns, webauthn_req_temp);
-      nsresult  rv = httpChannel->GetResponseHeader("webauthn_req"_ns, webauthn_req_temp);
-      printf("Innnnnn WEBAUTHNNNN ???????????????????");
-      if (NS_SUCCEEDED(rv)) {
-        printf("%s\n", webauthn_req_temp.get());
-        printf("polo");
-      } else {
-        printf("unsuccesful");
-      }
+  if (nsCOMPtr<nsIHttpChannel> channel = do_QueryReferent(httpChannelPtr)) {
+
+    printf("WebAuthnManager::MakeCredential -- successfully got channel\n");
+    nsCString webauthn_req_temp;
+    nsresult rv = channel.get()->GetSecureWebAuthnParams(webauthn_req_temp);
+
+    if (NS_SUCCEEDED(rv)) {
+      printf("WebAuthnManager::MakeCredential -- webauthn params value: %s\n", webauthn_req_temp.get());
+    } else {
+      printf("WebAuthnManager::MakeCredential -- params retrieval unsuccesful\n");
     }
   }
 
