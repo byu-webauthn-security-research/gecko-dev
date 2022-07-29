@@ -8,6 +8,8 @@
 #define mozilla_dom_WebAuthnSecureStorage_h
 
 // #include "nsTHashMap.h"
+#include <map>
+#include "nsString.h"
 
 namespace mozilla { 
 namespace dom {
@@ -15,12 +17,12 @@ namespace dom {
 class WebAuthnSecureStorage {
  public:
   static WebAuthnSecureStorage* GetInstance();
-  // static void Release(){};
-  // nsresult SetSecureOptions(nsCString host, nsCString options);
+  nsresult SetSecureOptions(nsAutoCString host, nsCString options);
  private:
   WebAuthnSecureStorage();
   ~WebAuthnSecureStorage();
-  static WebAuthnSecureStorage* gSecureStorage;
+  static WebAuthnSecureStorage* gInstance;
+  std::map<nsAutoCString, nsAutoCString> storage;
   // nsTHashMap<nsAutoCString, nsAutoCString>* storage;
 };
 

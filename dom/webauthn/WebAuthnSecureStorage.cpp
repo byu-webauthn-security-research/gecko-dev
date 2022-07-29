@@ -1,5 +1,6 @@
 #include "WebAuthnSecureStorage.h"
 #include <cstdio>
+#include <map>
 // #include "nsCOMPtr.h"
 
 // nsTHashMap<nsAutoCString, nsAutoCString>* WebAuthnSecureStorage::storage = nullptr;
@@ -7,20 +8,27 @@ namespace mozilla {
 namespace dom {
 
 WebAuthnSecureStorage::WebAuthnSecureStorage() {
-  printf("WebAuthnSecureStorage created\n");
+  storage = std::map<nsAutoCString, nsAutoCString>();
+  printf("WebAuthnSecureStorage::WebAuthnSecureStorage -- created\n");
 }
 
 WebAuthnSecureStorage::~WebAuthnSecureStorage() {
-  delete gSecureStorage;
+  delete gInstance;
 }
 
-WebAuthnSecureStorage* WebAuthnSecureStorage::gSecureStorage;
+WebAuthnSecureStorage* WebAuthnSecureStorage::gInstance;
 
 WebAuthnSecureStorage* WebAuthnSecureStorage::GetInstance() {
-  if (!gSecureStorage) {
-    gSecureStorage = new WebAuthnSecureStorage();
+  if (!gInstance) {
+    gInstance = new WebAuthnSecureStorage();
   }
-  return gSecureStorage;
+  return gInstance;
+}
+
+nsresult WebAuthnSecureStorage::SetSecureOptions(nsAutoCString host, nsCString options) {
+  storage.insert(std::make_pair(host, options));
+  printf("WebAuthnSecureStorage::SetSecureOptions -- set %s to %s\n", host.get(), options.get());
+  return NS_OK;
 }
 
 } }

@@ -1977,13 +1977,22 @@ nsresult nsHttpChannel::ProcessResponse() {
   LOG(("nsHttpChannel::ProcessResponse [this=%p httpStatus=%u]\n", this,
        httpStatus));
 
-  nsAutoCString host;
-  nsresult rv = mURI->GetAsciiHost(host);
-  if (NS_FAILED(rv)) return rv;
+  nsCString webauthn_req_initial;
+  nsresult rv = mResponseHead->GetHeader(nsHttp::WebAuthn_Req, webauthn_req_initial);
 
-  printf("nsHttpChannel::ProcessResponse -- host: %s\n", host.get());
+  if (NS_SUCCEEDED(rv)) {
+    nsAutoCString host;
+    rv = mURI->GetAsciiHost(host);
+    if (NS_FAILED(rv)) return rv;
 
-  WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
+    printf("nsHttpChannel::ProcessResponse -- host: %s\n", host.get());
+
+    WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
+
+    storage->SetSecureOptions(host, webauthn_req_initial);
+
+    //todo: replace header with junk
+  }
 
   // Gather data on whether the transaction and page (if this is
   // the initial page load) is being loaded with SSL.
