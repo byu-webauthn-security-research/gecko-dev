@@ -4,6 +4,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "WebAuthnSecureStorage.h"
+#include "mozilla/ipc/BackgroundParent.h"
+#include <iostream>
+#include <thread>
 #include "hasht.h"
 #include "nsHTMLDocument.h"
 #include "nsIURIMutator.h"
@@ -257,6 +261,21 @@ already_AddRefed<Promise> WebAuthnManager::MakeCredential(
     promise->MaybeReject(rv);
     return promise.forget();
   }
+
+  std::cout << "WebAuthnManager::MakeCredentials -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getppid() << std::endl;
+  mozilla::ipc::AssertIsInMainProcess();
+  printf("WebAuthnManager::MakeCredentials -- After assert\n");
+
+  WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
+  nsCString secureOptions;
+  rv = storage->GetSecureOptions(rpId, &secureOptions);
+
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    promise->MaybeReject(rv);
+    return promise.forget();
+  }
+
+  printf("WebAuthnManager::MakeCredentials -- retrieved options: %s", secureOptions.get());
 
   // Enforce 5.4.3 User Account Parameters for Credential Generation
   // When we add UX, we'll want to do more with this value, but for now

@@ -9,23 +9,30 @@
 
 // #include "nsTHashMap.h"
 #include <map>
+#include "mozilla/RefPtr.h"
+#include "nsISupportsBase.h"
 #include "nsString.h"
+#include "mozilla/StaticPtr.h"
+#include "nsWeakReference.h"
 
-namespace mozilla { 
-namespace dom {
+namespace mozilla::dom {
 
-class WebAuthnSecureStorage {
+class WebAuthnSecureStorage final {
  public:
+  // NS_INLINE_DECL_REFCOUNTING(WebAuthnSecureStorage);
   static WebAuthnSecureStorage* GetInstance();
   nsresult SetSecureOptions(nsAutoCString host, nsCString options);
- private:
+  nsresult GetSecureOptions(nsCString host, nsCString* options);
+  int AddRef();
+  int Release();
   WebAuthnSecureStorage();
-  ~WebAuthnSecureStorage();
-  static WebAuthnSecureStorage* gInstance;
+  ~WebAuthnSecureStorage() = default;
+ private:
+  static mozilla::StaticRefPtr<WebAuthnSecureStorage> gInstance;
   std::map<nsAutoCString, nsAutoCString> storage;
   // nsTHashMap<nsAutoCString, nsAutoCString>* storage;
 };
 
-} } // namespace mozilla::dom
+} // namespace mozilla::dom
 
 #endif  // mozilla_dom_WebAuthnManager_h

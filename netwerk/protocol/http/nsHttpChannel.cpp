@@ -8,6 +8,10 @@
 #include "HttpLog.h"
 
 #include <inttypes.h>
+#include <unistd.h>
+#include <iostream>
+#include <thread>
+#include "mozilla/ipc/BackgroundParent.h"
 
 #include "DocumentChannelParent.h"
 #include "mozilla/MozPromiseInlines.h"  // For MozPromise::FromDomPromise
@@ -1977,6 +1981,11 @@ nsresult nsHttpChannel::ProcessResponse() {
   LOG(("nsHttpChannel::ProcessResponse [this=%p httpStatus=%u]\n", this,
        httpStatus));
 
+  std::cout << "nsHttpChannel::ProcessResponse -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getppid() << std::endl;
+  mozilla::ipc::AssertIsInMainProcess();
+  printf("nsHttpChannel::ProcessResponse -- After assert\n");
+  std::cout << "nsHttpChannel::ProcessResponse -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getppid() << std::endl;
+
   nsCString webauthn_req_initial;
   nsresult rv = mResponseHead->GetHeader(nsHttp::WebAuthn_Req, webauthn_req_initial);
 
@@ -1990,8 +1999,6 @@ nsresult nsHttpChannel::ProcessResponse() {
     WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
 
     storage->SetSecureOptions(host, webauthn_req_initial);
-
-    //todo: replace header with junk
   }
 
   // Gather data on whether the transaction and page (if this is
