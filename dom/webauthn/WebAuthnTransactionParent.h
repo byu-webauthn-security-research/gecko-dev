@@ -20,7 +20,7 @@ namespace mozilla::dom {
 class WebAuthnTransactionParent final : public PWebAuthnTransactionParent {
  public:
   NS_INLINE_DECL_REFCOUNTING(WebAuthnTransactionParent);
-  WebAuthnTransactionParent() = default;
+  WebAuthnTransactionParent();
 
   mozilla::ipc::IPCResult RecvRequestRegister(
       const uint64_t& aTransactionId,

@@ -19,17 +19,18 @@ namespace mozilla::dom {
 
 class WebAuthnSecureStorage final {
  public:
-  // NS_INLINE_DECL_REFCOUNTING(WebAuthnSecureStorage);
+  NS_INLINE_DECL_REFCOUNTING(WebAuthnSecureStorage);
   static WebAuthnSecureStorage* GetInstance();
-  nsresult SetSecureOptions(nsAutoCString host, nsCString options);
-  nsresult GetSecureOptions(nsCString host, nsCString* options);
-  int AddRef();
-  int Release();
+  nsresult SetSecureOptions(nsCString options);
+  nsCString GetSecureOptions();
+  // int AddRef();
+  // int Release();
   WebAuthnSecureStorage();
-  ~WebAuthnSecureStorage() = default;
  private:
-  static mozilla::StaticRefPtr<WebAuthnSecureStorage> gInstance;
+  // static mozilla::StaticRefPtr<WebAuthnSecureStorage> gInstance;
+  ~WebAuthnSecureStorage() = default;
   std::map<nsAutoCString, nsAutoCString> storage;
+  nsCString options;
   // nsTHashMap<nsAutoCString, nsAutoCString>* storage;
 };
 

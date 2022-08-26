@@ -5,6 +5,8 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "mozilla/dom/WebAuthnTransactionParent.h"
+#include <iostream>
+#include "WebAuthnSecureStorage.h"
 #include "mozilla/dom/U2FTokenManager.h"
 #include "mozilla/ipc/PBackgroundParent.h"
 #include "mozilla/ipc/BackgroundParent.h"
@@ -29,6 +31,15 @@ mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestRegister(
     mgr->Register(this, aTransactionId, aTransactionInfo);
   }
 #else
+  std::cout << "WebAuthnTransactionParent::RecvRequestRegister -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getppid() << std::endl;
+  std::cout << "WebAuthnTransactionParent::RecvRequestRegister -- RpId: " << aTransactionInfo.RpId() << std::endl;
+
+  WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
+  nsCString options = storage->GetSecureOptions();
+
+  std::cout << "WebAuthnTransactionParent::RecvRequestRegister -- Options: " << options << std::endl;
+
+
   U2FTokenManager* mgr = U2FTokenManager::Get();
   mgr->Register(this, aTransactionId, aTransactionInfo);
 #endif
@@ -119,6 +130,10 @@ void WebAuthnTransactionParent::ActorDestroy(ActorDestroyReason aWhy) {
     mgr->MaybeClearTransaction(this);
   }
 #endif
+}
+
+WebAuthnTransactionParent::WebAuthnTransactionParent() {
+  std::cout << "WebAuthnTransactionParent::WebAuthnTransactionParent -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getppid() << std::endl;
 }
 
 }  // namespace mozilla::dom

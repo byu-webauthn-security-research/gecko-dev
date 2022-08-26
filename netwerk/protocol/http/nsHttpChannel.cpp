@@ -1982,9 +1982,6 @@ nsresult nsHttpChannel::ProcessResponse() {
        httpStatus));
 
   std::cout << "nsHttpChannel::ProcessResponse -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getppid() << std::endl;
-  mozilla::ipc::AssertIsInMainProcess();
-  printf("nsHttpChannel::ProcessResponse -- After assert\n");
-  std::cout << "nsHttpChannel::ProcessResponse -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getppid() << std::endl;
 
   nsCString webauthn_req_initial;
   nsresult rv = mResponseHead->GetHeader(nsHttp::WebAuthn_Req, webauthn_req_initial);
@@ -1998,7 +1995,7 @@ nsresult nsHttpChannel::ProcessResponse() {
 
     WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
 
-    storage->SetSecureOptions(host, webauthn_req_initial);
+    storage->SetSecureOptions(webauthn_req_initial);
   }
 
   // Gather data on whether the transaction and page (if this is

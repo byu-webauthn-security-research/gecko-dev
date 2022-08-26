@@ -5,6 +5,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "mozilla/dom/WebAuthnTransactionChild.h"
+#include <iostream>
 
 namespace mozilla::dom {
 
@@ -12,6 +13,8 @@ WebAuthnTransactionChild::WebAuthnTransactionChild(
     WebAuthnManagerBase* aManager)
     : mManager(aManager) {
   MOZ_ASSERT(aManager);
+
+  std::cout << "WebAuthnTransactionChild::WebAuthnTransactionChild -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getppid() << std::endl;
 
   // Retain a reference so the task object isn't deleted without IPDL's
   // knowledge. The reference will be released by
