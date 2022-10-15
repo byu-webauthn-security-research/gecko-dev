@@ -10,12 +10,68 @@
 // #include "nsTHashMap.h"
 #include <map>
 #include "mozilla/RefPtr.h"
+#include "mozilla/dom/PWebAuthnTransaction.h"
 #include "nsISupportsBase.h"
 #include "nsString.h"
 #include "mozilla/StaticPtr.h"
 #include "nsWeakReference.h"
 
+#include "mozilla/ipc/BackgroundParent.h"
+#include <iostream>
+#include <thread>
+#include <sstream>
+#include <cstdint>
+
+
 namespace mozilla::dom {
+
+struct rpStorage{
+  std::string name;
+  std::string id;
+};
+struct userStorage{
+  std::string name;
+  std::string displayName;
+  std::string id;
+};
+struct pubKeyCredParamStorage{
+  std::string alg;
+  std::string type;
+};
+struct authenticatorSelectionStorage{
+  std::string residentKey;
+};
+struct extensionsStorage{
+  bool credProps;
+};
+struct actionsStorage{
+  std::string finish;
+};
+struct publicKeyCredentialCreationOptionsStorage{
+  rpStorage rpStorage;
+  userStorage userStorage;
+  std::string challenge;
+  pubKeyCredParamStorage paramsStorage[3];
+  authenticatorSelectionStorage authentictorSelection;
+  std::string attestationStorage;
+  extensionsStorage extensions;
+};
+
+struct requestStorage {
+  std::string username;
+  std::string credentialNickname;
+  std::string requestId;
+  publicKeyCredentialCreationOptionsStorage optionsStorage;
+  std::string sessionToken;
+};
+
+struct StorageStruct{
+  bool success;
+  requestStorage request;
+  actionsStorage actions;
+};
+
+
 
 class WebAuthnSecureStorage final {
  public:
@@ -23,16 +79,46 @@ class WebAuthnSecureStorage final {
   static WebAuthnSecureStorage* GetInstance();
   nsresult SetSecureOptions(nsCString options);
   nsCString GetSecureOptions();
+  uint64_t GetID();
+  void SetInfo(WebAuthnMakeCredentialInfo info);
+  WebAuthnMakeCredentialInfo GetInfo();
+  std::string GetKeyValuePairs(std::string keyValue);
+  void SerializeSecureOptions();
+  void SerializeSecureOptions2();
+  void PrintStorage();
+  nsCString StringToNsString(std::string input);
+  nsTString<char16_t> StringToNsTChar(std::string input);
+  long StringToLong(std::string input);
+
+  void MakeCredential();
+
+  void MapValue();
+  std::string IsChanged();
+  //void CreateInfo(nsString origin, nsAutoCString clientDataJSON, uint32_t adjustedTimeout,nsTArray<WebAuthnScopedCredential> excludeList, WebAuthnMakeCredentialExtraInfo extra, BrowsingContext * context);
   // int AddRef();
   // int Release();
   WebAuthnSecureStorage();
+  std::string Advance(std::string value);
  private:
   // static mozilla::StaticRefPtr<WebAuthnSecureStorage> gInstance;
   ~WebAuthnSecureStorage() = default;
-  std::map<nsAutoCString, nsAutoCString> storage;
-  nsCString options;
-  // nsTHashMap<nsAutoCString, nsAutoCString>* storage;
+
+  std::map<std::string, std::string> responsePairs;
+  nsCString Options;
+  StorageStruct responseStorage;
+  //Serialized
+  nsCString RpId;
+  uint64_t RpIDInt;
+  bool AddedRpId = false;
+  nsCString Success;
+
+  //options and result
+  // WebAuthnMakeCredentialResult
+  mozilla::dom::WebAuthnMakeCredentialInfo Info;
+
+
 };
+
 
 } // namespace mozilla::dom
 

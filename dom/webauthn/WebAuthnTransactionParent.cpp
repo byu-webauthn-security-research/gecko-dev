@@ -10,6 +10,7 @@
 #include "mozilla/dom/U2FTokenManager.h"
 #include "mozilla/ipc/PBackgroundParent.h"
 #include "mozilla/ipc/BackgroundParent.h"
+#include <inttypes.h>
 
 #ifdef OS_WIN
 #  include "WinWebAuthnManager.h"
@@ -18,36 +19,50 @@
 namespace mozilla::dom {
 
 mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestRegister(
-    const uint64_t& aTransactionId,
-    const WebAuthnMakeCredentialInfo& aTransactionInfo) {
+    const uint64_t & aTransactionId,
+    const WebAuthnMakeCredentialInfo & aTransactionInfo) {
   ::mozilla::ipc::AssertIsOnBackgroundThread();
 
 #ifdef OS_WIN
-  if (WinWebAuthnManager::AreWebAuthNApisAvailable()) {
+  if (WinWebAuthnManager::AreWebAuthNApisAvailable()) { // Daniel's section
     WinWebAuthnManager* mgr = WinWebAuthnManager::Get();
+    // Secure Storage Start
+    std::cout << "WebAuthnTransactionParent::RecvRequestRegister if (OS WIN) -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
+
+    WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
+    std::cout << "WebAuthnTransactionParent::RecvRequestRegister -- ID from storage if OS : "<< storage->GetID()<< std::endl;
+    std::cout <<"WebAuthnTransactionParent::RecvRequestRegister -- atransaction id: " << aTransactionId <<std::endl;
+    //std::cout <<"WebAuthnTransactionParent::RecvRequestRegister -- atransaction info: " << aTransactionInfo.rpID() <<std::endl;
+    // Secure Storage END
+
+
+    //mgr->Register(this, aTransactionId, storage->GetInfo()); my info
     mgr->Register(this, aTransactionId, aTransactionInfo);
   } else {
     U2FTokenManager* mgr = U2FTokenManager::Get();
     mgr->Register(this, aTransactionId, aTransactionInfo);
   }
 #else
-  std::cout << "WebAuthnTransactionParent::RecvRequestRegister -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getppid() << std::endl;
+  std::cout << "WebAuthnTransactionParent::RecvRequestRegister -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
   std::cout << "WebAuthnTransactionParent::RecvRequestRegister -- RpId: " << aTransactionInfo.RpId() << std::endl;
+
 
   WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
   nsCString options = storage->GetSecureOptions();
-
-  std::cout << "WebAuthnTransactionParent::RecvRequestRegister -- Options: " << options << std::endl;
-
+  // std::cout << "WebAuthnTransactionParent::RecvRequestRegister -- Options new line "<< std::endl;
+  //std::cout << "WebAuthnTransactionParent::RecvRequestRegister -- Options from func: " << options.get() << std::endl;
+  std::cout <<"WebAuthnTransactionParent::RecvRequestRegister -- atransaction info: " << aTransactionInfo <<std::endl;
+  std::cout <<"WebAuthnTransactionParent::RecvRequestRegister -- atransaction id: " << aTransactionId <<std::endl;
+  // deserialize this so that the id and the info are gotten
 
   U2FTokenManager* mgr = U2FTokenManager::Get();
-  mgr->Register(this, aTransactionId, aTransactionInfo);
+  mgr->Register(this, options, aTransactionInfo); // need to change these two parameters, id and info so that it is us injecting the authen token
 #endif
 
   return IPC_OK();
 }
 
-mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestSign(
+mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestSign( // this is second half
     const uint64_t& aTransactionId,
     const WebAuthnGetAssertionInfo& aTransactionInfo) {
   ::mozilla::ipc::AssertIsOnBackgroundThread();
@@ -55,6 +70,8 @@ mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestSign(
 #ifdef OS_WIN
   if (WinWebAuthnManager::AreWebAuthNApisAvailable()) {
     WinWebAuthnManager* mgr = WinWebAuthnManager::Get();
+    std::cout << "WebAuthnTransactionParent::AreWebAuthNApisAvailable if (OS WIN) -- Thread: " <<std::endl;
+    WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
     mgr->Sign(this, aTransactionId, aTransactionInfo);
   } else {
     U2FTokenManager* mgr = U2FTokenManager::Get();
@@ -62,6 +79,7 @@ mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestSign(
   }
 #else
   U2FTokenManager* mgr = U2FTokenManager::Get();
+  std::cout << "WebAuthnTransactionParent::AreWebAuthNApisAvailable else (OS WIN) -- Thread: " <<std::endl;
   mgr->Sign(this, aTransactionId, aTransactionInfo);
 #endif
 
@@ -74,10 +92,12 @@ mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestCancel(
 
 #ifdef OS_WIN
   if (WinWebAuthnManager::AreWebAuthNApisAvailable()) {
+    std::cout << "WebAuthnTransactionParent::RecvRequestCancel" <<std::endl;
     WinWebAuthnManager* mgr = WinWebAuthnManager::Get();
     mgr->Cancel(this, aTransactionId);
   } else {
     U2FTokenManager* mgr = U2FTokenManager::Get();
+    std::cout << "WebAuthnTransactionParent::RecvRequestCancel else" <<std::endl;
     mgr->Cancel(this, aTransactionId);
   }
 #else
@@ -133,7 +153,10 @@ void WebAuthnTransactionParent::ActorDestroy(ActorDestroyReason aWhy) {
 }
 
 WebAuthnTransactionParent::WebAuthnTransactionParent() {
-  std::cout << "WebAuthnTransactionParent::WebAuthnTransactionParent -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getppid() << std::endl;
+  std::cout << "WebAuthnTransactionParent::WebAuthnTransactionParent -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
+  WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
+  nsCString options = storage->GetSecureOptions();
 }
+
 
 }  // namespace mozilla::dom

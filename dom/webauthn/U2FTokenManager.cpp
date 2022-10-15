@@ -21,6 +21,7 @@
 #include "nsIThread.h"
 #include "nsTextFormatter.h"
 #include "mozilla/Telemetry.h"
+#include <iostream>
 
 #ifdef MOZ_WIDGET_ANDROID
 #  include "mozilla/dom/AndroidWebAuthnTokenManager.h"
@@ -311,7 +312,7 @@ void U2FTokenManager::Register(
   AbortOngoingTransaction();
   mTransactionParent = aTransactionParent;
   mTokenManagerImpl = GetTokenManagerImpl();
-
+  std::cout << "U2FTokenManager::Register "<< std::endl;
   if (!mTokenManagerImpl) {
     AbortTransaction(aTransactionId, NS_ERROR_DOM_NOT_ALLOWED_ERR);
     return;
@@ -393,7 +394,7 @@ void U2FTokenManager::MaybeConfirmRegister(
     const WebAuthnMakeCredentialResult& aResult) {
   MOZ_ASSERT(mLastTransactionId == aTransactionId);
   mRegisterPromise.Complete();
-
+  printf("U2f TOKEN send confirem attestation 506______________________________\n");
   Unused << mTransactionParent->SendConfirmRegister(aTransactionId, aResult);
   ClearTransaction();
 }

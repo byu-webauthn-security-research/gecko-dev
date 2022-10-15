@@ -197,6 +197,8 @@ nsresult AssembleAttestationObject(const CryptoBuffer& aRpIdHash,
                                    /* out */ CryptoBuffer& aAttestationObjBuf) {
   // Construct the public key object
   CryptoBuffer pubKeyObj;
+  std::cout<< "Webauthn Util :: assemble attestation object" << std::endl;
+  printf("WEBAUTHN UTIL ________________________________________________________________________\n");
   nsresult rv = CBOREncodePublicKeyObj(aPubKeyBuf, pubKeyObj);
   if (NS_FAILED(rv)) {
     return rv;
@@ -209,6 +211,7 @@ nsresult AssembleAttestationObject(const CryptoBuffer& aRpIdHash,
 
   // FIDO U2F devices have no AAGUIDs, so they'll be all zeros until we add
   // support for CTAP2 devices.
+  printf("WEBAUTHN UTIL ________________________________________________________________________\n");
   for (int i = 0; i < 16; i++) {
     // SetCapacity was just called, these cannot fail.
     (void)aaguidBuf.AppendElement(0x00, mozilla::fallible);
@@ -296,7 +299,7 @@ nsresult U2FDecomposeRegistrationResponse(
   // *      key handle
   // ASN.1  attestation certificate
   // *      attestation signature
-
+  printf("WEBAUTHN UTIL ________________________________________________________________________\n");
   pkix::Input u2fResponse;
   u2fResponse.Init(aResponse.Elements(), aResponse.Length());
 
@@ -384,7 +387,7 @@ nsresult U2FDecomposeECKey(const CryptoBuffer& aPubKeyBuf,
 static nsresult HashCString(nsICryptoHash* aHashService, const nsACString& aIn,
                             /* out */ CryptoBuffer& aOut) {
   MOZ_ASSERT(aHashService);
-
+  printf("WEBAUTHN UTIL ________________________________________________________________________\n");
   nsresult rv = aHashService->Init(nsICryptoHash::SHA256);
   if (NS_WARN_IF(NS_FAILED(rv))) {
     return rv;
@@ -423,7 +426,7 @@ nsresult HashCString(const nsACString& aIn, /* out */ CryptoBuffer& aOut) {
   if (NS_WARN_IF(NS_FAILED(srv))) {
     return NS_ERROR_FAILURE;
   }
-
+  printf("WEBAUTHN UTIL ________________________________________________________________________\n");
   return NS_OK;
 }
 
@@ -453,7 +456,7 @@ nsresult BuildTransactionHashes(const nsCString& aRpId,
   if (NS_WARN_IF(NS_FAILED(srv))) {
     return NS_ERROR_FAILURE;
   }
-
+  printf("WEBAUTHN UTIL ________________________________________________________________________\n");
   return NS_OK;
 }
 

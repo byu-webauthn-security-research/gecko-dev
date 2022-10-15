@@ -14,7 +14,7 @@ WebAuthnTransactionChild::WebAuthnTransactionChild(
     : mManager(aManager) {
   MOZ_ASSERT(aManager);
 
-  std::cout << "WebAuthnTransactionChild::WebAuthnTransactionChild -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getppid() << std::endl;
+  std::cout << "WebAuthnTransactionChild::WebAuthnTransactionChild -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
 
   // Retain a reference so the task object isn't deleted without IPDL's
   // knowledge. The reference will be released by
@@ -25,6 +25,8 @@ WebAuthnTransactionChild::WebAuthnTransactionChild(
 mozilla::ipc::IPCResult WebAuthnTransactionChild::RecvConfirmRegister(
     const uint64_t& aTransactionId,
     const WebAuthnMakeCredentialResult& aResult) {
+  std::cout << "WebAuthnTransactionChild::WebAuthnTransactionChild -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
+  std::cout << "WebAuthnTransactionChild::WebAuthnTransactionChild -- RecvConfirmRegister "<< std::endl;
   if (NS_WARN_IF(!mManager)) {
     return IPC_FAIL_NO_REASON(this);
   }
@@ -40,6 +42,8 @@ mozilla::ipc::IPCResult WebAuthnTransactionChild::RecvConfirmRegister(
 
 mozilla::ipc::IPCResult WebAuthnTransactionChild::RecvConfirmSign(
     const uint64_t& aTransactionId, const WebAuthnGetAssertionResult& aResult) {
+  std::cout << "WebAuthnTransactionChild::WebAuthnTransactionChild -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
+  std::cout << "WebAuthnTransactionChild::WebAuthnTransactionChild -- RecvConfirmSign "<< std::endl;
   if (NS_WARN_IF(!mManager)) {
     return IPC_FAIL_NO_REASON(this);
   }

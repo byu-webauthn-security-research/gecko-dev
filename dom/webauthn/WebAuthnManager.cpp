@@ -222,9 +222,10 @@ WebAuthnManager::~WebAuthnManager() {
   }
 }
 
+
 already_AddRefed<Promise> WebAuthnManager::MakeCredential(
     const PublicKeyCredentialCreationOptions& aOptions,
-    const Optional<OwningNonNull<AbortSignal>>& aSignal, ErrorResult& aError) {
+    const Optional<OwningNonNull<AbortSignal>>& aSignal, ErrorResult& aError) { // STEP 1 - Getting aOptions // copy this function to be able to make your own credentials based on json string representation, then I can pull in
   MOZ_ASSERT(NS_IsMainThread());
 
   nsCOMPtr<nsIGlobalObject> global = do_QueryInterface(mParent);
@@ -253,27 +254,31 @@ already_AddRefed<Promise> WebAuthnManager::MakeCredential(
     promise->MaybeReject(NS_ERROR_DOM_ABORT_ERR);
     return promise.forget();
   }
-
+  // STEP 2.5 origin
   nsString origin;
+  // STEP 2.5 rpID
   nsCString rpId;
   nsresult rv = GetOrigin(mParent, origin, rpId);
+   WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
+  std::cout<< storage->GetSecureOptions() << std::endl;
+  //storage->MakeCredential();
+
   if (NS_WARN_IF(NS_FAILED(rv))) {
     promise->MaybeReject(rv);
     return promise.forget();
   }
 
-  std::cout << "WebAuthnManager::MakeCredentials -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getppid() << std::endl;
+  std::cout << "WebAuthnManager::MakeCredentials -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
+  std::cout << "RPID test: "<< rpId<<std::endl;
 
-  WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
   // nsCString secureOptions;
-  // rv = storage->GetSecureOptions(rpId, &secureOptions);
 
   // if (NS_WARN_IF(NS_FAILED(rv))) {
   //   promise->MaybeReject(rv);
   //   return promise.forget();
   // }
 
-  // printf("WebAuthnMafnager::MakeCredentials -- retrieved options: %s", secureOptions.get());
+  //printf("WebAuthnMafnager::MakeCredentials -- retrieved options: %s", secureOptions.get());
 
   // Enforce 5.4.3 User Account Parameters for Credential Generation
   // When we add UX, we'll want to do more with this value, but for now
@@ -290,6 +295,7 @@ already_AddRefed<Promise> WebAuthnManager::MakeCredential(
   // reasonable range as defined by the platform and if not, correct it to the
   // closest value lying within that range.
 
+  // STEP 2.5 adjustedTimeout
   uint32_t adjustedTimeout = 30000;
   if (aOptions.mTimeout.WasPassed()) {
     adjustedTimeout = aOptions.mTimeout.Value();
@@ -334,7 +340,6 @@ already_AddRefed<Promise> WebAuthnManager::MakeCredential(
           PublicKeyCredentialType::Public_key) {
         continue;
       }
-
       coseAlgos.AppendElement(aOptions.mPubKeyCredParams[a].mAlg);
     }
   }
@@ -361,12 +366,13 @@ already_AddRefed<Promise> WebAuthnManager::MakeCredential(
   // structure representing this request. Choose a hash algorithm for hashAlg
   // and compute the clientDataJSON and clientDataHash.
 
+  //STEP 2.5 challenge
   CryptoBuffer challenge;
   if (!challenge.Assign(aOptions.mChallenge)) {
     promise->MaybeReject(NS_ERROR_DOM_SECURITY_ERR);
     return promise.forget();
   }
-
+  //STEP 2.5 clientDataJson
   nsAutoCString clientDataJSON;
   nsresult srv = AssembleClientData(origin, challenge, u"webauthn.create"_ns,
                                     aOptions.mExtensions, clientDataJSON);
@@ -375,6 +381,7 @@ already_AddRefed<Promise> WebAuthnManager::MakeCredential(
     return promise.forget();
   }
 
+  // STEP 2.5 excludeList
   nsTArray<WebAuthnScopedCredential> excludeList;
   for (const auto& s : aOptions.mExcludeCredentials) {
     WebAuthnScopedCredential c;
@@ -410,7 +417,7 @@ already_AddRefed<Promise> WebAuthnManager::MakeCredential(
     authenticatorAttachment.emplace(attachment.Value());
   }
 
-  // Create and forward authenticator selection criteria.
+  // Create and forward authenticator selection criteria. // NEED TO OVERWRITE
   WebAuthnAuthenticatorSelection authSelection(selection.mRequireResidentKey,
                                                selection.mUserVerification,
                                                authenticatorAttachment);
@@ -438,13 +445,19 @@ already_AddRefed<Promise> WebAuthnManager::MakeCredential(
     promise->MaybeReject(NS_ERROR_DOM_OPERATION_ERR);
     return promise.forget();
   }
-
-  WebAuthnMakeCredentialInfo info(
+  //storage->CreateInfo(origin, clientDataJSON, adjustedTimeout, excludeList, extra, context );
+  //STEP 2.5 END
+  WebAuthnMakeCredentialInfo info( // need to read into this file
       origin, NS_ConvertUTF8toUTF16(rpId), challenge, clientDataJSON,
-      adjustedTimeout, excludeList, Some(extra), context->Top()->Id());
+      adjustedTimeout, excludeList, Some(extra), 1);
+
+  //storage->SetInfo(info); // does this cover the extensions or is it during the extension
+
+
+
 
 #ifdef OS_WIN
-  if (!WinWebAuthnManager::AreWebAuthNApisAvailable()) {
+  if (!WinWebAuthnManager::AreWebAuthNApisAvailable()) { // need to replicate for way back
     ListenForVisibilityEvents();
   }
 #else
@@ -457,7 +470,7 @@ already_AddRefed<Promise> WebAuthnManager::MakeCredential(
     Follow(signal);
   }
 
-  MOZ_ASSERT(mTransaction.isNothing());
+  MOZ_ASSERT(mTransaction.isNothing()); 
   mTransaction = Some(WebAuthnTransaction(promise));
   mChild->SendRequestRegister(mTransaction.ref().mId, info);
 
@@ -548,14 +561,14 @@ already_AddRefed<Promise> WebAuthnManager::GetAssertion(
   // key associated with callerOrigin (if any), to create a ClientData structure
   // representing this request. Choose a hash algorithm for hashAlg and compute
   // the clientDataJSON and clientDataHash.
-  CryptoBuffer challenge;
+  CryptoBuffer challenge; // STEP 2
   if (!challenge.Assign(aOptions.mChallenge)) {
     promise->MaybeReject(NS_ERROR_DOM_SECURITY_ERR);
     return promise.forget();
   }
 
   nsAutoCString clientDataJSON;
-  rv = AssembleClientData(origin, challenge, u"webauthn.get"_ns,
+  rv = AssembleClientData(origin, challenge, u"webauthn.get"_ns, // STEP 2
                           aOptions.mExtensions, clientDataJSON);
   if (NS_WARN_IF(NS_FAILED(rv))) {
     promise->MaybeReject(NS_ERROR_DOM_SECURITY_ERR);
@@ -641,7 +654,7 @@ already_AddRefed<Promise> WebAuthnManager::GetAssertion(
     }
 
     // Append the hash and send it to the backend.
-    extensions.AppendElement(WebAuthnExtensionAppId(appIdHash, appId));
+    extensions.AppendElement(WebAuthnExtensionAppId(appIdHash, appId));      // HASH and then send to STEP 3
   }
 
   WebAuthnGetAssertionExtraInfo extra(extensions, aOptions.mUserVerification);
@@ -654,7 +667,7 @@ already_AddRefed<Promise> WebAuthnManager::GetAssertion(
 
   WebAuthnGetAssertionInfo info(origin, NS_ConvertUTF8toUTF16(rpId), challenge,
                                 clientDataJSON, adjustedTimeout, allowList,
-                                Some(extra), context->Top()->Id());
+                                Some(extra), context->Top()->Id()); // GET ASSERTION : STEP 4?
 
 #ifdef OS_WIN
   if (!WinWebAuthnManager::AreWebAuthNApisAvailable()) {
@@ -678,7 +691,7 @@ already_AddRefed<Promise> WebAuthnManager::GetAssertion(
 }
 
 already_AddRefed<Promise> WebAuthnManager::Store(const Credential& aCredential,
-                                                 ErrorResult& aError) {
+                                                 ErrorResult& aError) { // STORE CRENDENTIALS and any errors STEP 4
   MOZ_ASSERT(NS_IsMainThread());
 
   nsCOMPtr<nsIGlobalObject> global = do_QueryInterface(mParent);
@@ -710,6 +723,8 @@ void WebAuthnManager::FinishMakeCredential(
     const uint64_t& aTransactionId,
     const WebAuthnMakeCredentialResult& aResult) {
   MOZ_ASSERT(NS_IsMainThread());
+  std::cout<< "Web authn manager -- finish make credential" << std::endl;
+  printf("Web authn manager -- finish make credential\n");
 
   // Check for a valid transaction.
   if (mTransaction.isNothing() || mTransaction.ref().mId != aTransactionId) {
@@ -723,7 +738,7 @@ void WebAuthnManager::FinishMakeCredential(
   }
 
   CryptoBuffer attObjBuf;
-  if (NS_WARN_IF(!attObjBuf.Assign(aResult.AttestationObject()))) {
+  if (NS_WARN_IF(!attObjBuf.Assign(aResult.AttestationObject()))) { // STEP 4?
     RejectTransaction(NS_ERROR_OUT_OF_MEMORY);
     return;
   }
@@ -744,17 +759,19 @@ void WebAuthnManager::FinishMakeCredential(
   // Create a new PublicKeyCredential object and populate its fields with the
   // values returned from the authenticator as well as the clientDataJSON
   // computed earlier.
-  RefPtr<AuthenticatorAttestationResponse> attestation =
+  RefPtr<AuthenticatorAttestationResponse> attestation = // copy this process to the secure storage file
       new AuthenticatorAttestationResponse(mParent);
   attestation->SetClientDataJSON(clientDataBuf);
-  attestation->SetAttestationObject(attObjBuf);
+  attestation->SetAttestationObject(attObjBuf); // STEP 4
 
   RefPtr<PublicKeyCredential> credential = new PublicKeyCredential(mParent);
   credential->SetId(keyHandleBase64Url);
   credential->SetType(u"public-key"_ns);
   credential->SetRawId(keyHandleBuf);
   credential->SetResponse(attestation);
-
+  std::cout<< "Web authn manager -- finish make credential IMPORTANT CREDENTIAL" << std::endl;
+  printf("Web authn manager -- finish make credential   IMPORTANT CREDENTIAL\n");
+  fprintf(stderr, "Web authn manager -- finish make credential   IMPORTANT CREDENTIAL\n");
   // Forward client extension results.
   for (auto& ext : aResult.Extensions()) {
     if (ext.type() ==
@@ -769,7 +786,7 @@ void WebAuthnManager::FinishMakeCredential(
   ClearTransaction();
 }
 
-void WebAuthnManager::FinishGetAssertion(
+void WebAuthnManager::FinishGetAssertion( /////// DANIEL LOOK HERE -> This process needs to be copied
     const uint64_t& aTransactionId, const WebAuthnGetAssertionResult& aResult) {
   MOZ_ASSERT(NS_IsMainThread());
 
@@ -819,7 +836,7 @@ void WebAuthnManager::FinishGetAssertion(
   // Create a new PublicKeyCredential object named value and populate its fields
   // with the values returned from the authenticator as well as the
   // clientDataJSON computed earlier.
-  RefPtr<AuthenticatorAssertionResponse> assertion =
+  RefPtr<AuthenticatorAssertionResponse> assertion = // STEP 4 definate
       new AuthenticatorAssertionResponse(mParent);
   assertion->SetClientDataJSON(clientDataBuf);
   assertion->SetAuthenticatorData(authenticatorDataBuf);
@@ -828,7 +845,7 @@ void WebAuthnManager::FinishGetAssertion(
     assertion->SetUserHandle(userHandleBuf);
   }
 
-  RefPtr<PublicKeyCredential> credential = new PublicKeyCredential(mParent);
+  RefPtr<PublicKeyCredential> credential = new PublicKeyCredential(mParent); // Copy this credential creation
   credential->SetId(credentialBase64Url);
   credential->SetType(u"public-key"_ns);
   credential->SetRawId(credentialBuf);
@@ -838,7 +855,7 @@ void WebAuthnManager::FinishGetAssertion(
   for (auto& ext : aResult.Extensions()) {
     if (ext.type() == WebAuthnExtensionResult::TWebAuthnExtensionResultAppId) {
       bool appid = ext.get_WebAuthnExtensionResultAppId().AppId();
-      credential->SetClientExtensionResultAppId(appid);
+      credential->SetClientExtensionResultAppId(appid); // this forwards it to STEP 5 which sends it back to authen, but forwards it through browser and extensions
     }
   }
 

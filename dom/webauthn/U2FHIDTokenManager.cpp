@@ -9,6 +9,7 @@
 #include "mozilla/dom/WebAuthnUtil.h"
 #include "mozilla/ipc/BackgroundParent.h"
 #include "mozilla/StaticMutex.h"
+#include <iostream>
 
 namespace mozilla::dom {
 
@@ -107,7 +108,7 @@ RefPtr<U2FRegisterPromise> U2FHIDTokenManager::Register(
   mozilla::ipc::AssertIsOnBackgroundThread();
 
   uint64_t registerFlags = 0;
-
+  std::cout << "U2FFHIDFTokenManager::Register "<< std::endl;
   if (aInfo.Extra().isSome()) {
     const auto& extra = aInfo.Extra().ref();
     const WebAuthnAuthenticatorSelection& sel = extra.AuthenticatorSelection();

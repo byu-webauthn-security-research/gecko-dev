@@ -16,6 +16,7 @@
 #include "prerror.h"
 #include "secerr.h"
 #include "WebCryptoCommon.h"
+#include <iostream>
 
 #define PREF_U2F_NSSTOKEN_COUNTER "security.webauth.softtoken_counter"
 
@@ -569,6 +570,7 @@ nsresult U2FSoftTokenManager::IsRegistered(const nsTArray<uint8_t>& aKeyHandle,
 //
 RefPtr<U2FRegisterPromise> U2FSoftTokenManager::Register(
     const WebAuthnMakeCredentialInfo& aInfo, bool aForceNoneAttestation) {
+  std::cout << "U2FSoftTokenManager::Register "<< std::endl;
   if (!mInitialized) {
     nsresult rv = Init();
     if (NS_WARN_IF(NS_FAILED(rv))) {

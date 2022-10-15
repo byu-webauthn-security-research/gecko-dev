@@ -16,7 +16,7 @@
  * WebAuthnManager either cancel the transaction, or be formatted and relayed to
  * content.
  */
-
+//CHILD - how it sends to webauthen manager
 namespace mozilla::dom {
 
 class WebAuthnTransactionChild final : public PWebAuthnTransactionChild {

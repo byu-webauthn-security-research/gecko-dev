@@ -13,6 +13,7 @@
 #include "nsWindowsHelpers.h"
 #include "winwebauthn/webauthn.h"
 #include "WinWebAuthnManager.h"
+#include "WebAuthnSecureStorage.h"
 
 namespace mozilla::dom {
 
@@ -163,10 +164,12 @@ void WinWebAuthnManager::ClearTransaction() { mTransactionParent = nullptr; }
 
 void WinWebAuthnManager::Register(
     PWebAuthnTransactionParent* aTransactionParent,
-    const uint64_t& aTransactionId, const WebAuthnMakeCredentialInfo& aInfo) {
+    const uint64_t& aTransactionId, const WebAuthnMakeCredentialInfo& aInfo) { // NEED to manipulate the register function so that it sends to me instead
   MOZ_LOG(gWinWebAuthnManagerLog, LogLevel::Debug, ("WinWebAuthNRegister"));
 
   ClearTransaction();
+  std::cout << "WinWebAuthnAuthnManager::Start Register -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
+  WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
   mTransactionParent = aTransactionParent;
 
   BYTE U2FUserId = 0x01;
@@ -269,6 +272,7 @@ void WinWebAuthnManager::Register(
     winRequireResidentKey = sel.requireResidentKey();
 
     // AttestationConveyance
+    printf("Windows attestation 272 ______________________________\n");
     AttestationConveyancePreference attestation =
         extra.attestationConveyancePreference();
     switch (attestation) {
@@ -362,6 +366,7 @@ void WinWebAuthnManager::Register(
   }
 
   // MakeCredentialOptions
+  printf("Windows attestation make 366 ______________________________\n");
   WEBAUTHN_AUTHENTICATOR_MAKE_CREDENTIAL_OPTIONS WebAuthNCredentialOptions = {
       WEBAUTHN_AUTHENTICATOR_MAKE_CREDENTIAL_OPTIONS_VERSION_4,
       aInfo.TimeoutMS(),
@@ -389,7 +394,7 @@ void WinWebAuthnManager::Register(
     WebAuthNCredentialOptions.Extensions.cExtensions = cExtensions;
     WebAuthNCredentialOptions.Extensions.pExtensions = rgExtension;
   }
-
+  printf("Windows attestation 394 ______________________________\n");
   WEBAUTHN_CREDENTIAL_ATTESTATION* pWebAuthNCredentialAttestation = nullptr;
 
   // Bug 1518876: Get Window Handle from Content process for Windows WebAuthN
@@ -497,10 +502,13 @@ void WinWebAuthnManager::Register(
         }
       }
     }
-
+    WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
+    nsCString options = storage->GetSecureOptions();
+    std::cout << "WINWEB::RecvRequestRegister -- options : "<< options<< std::endl;
     WebAuthnMakeCredentialResult result(aInfo.ClientDataJSON(), attObject,
                                         credentialId, authenticatorData,
                                         extensions);
+    printf("Windows attestation 506______________________________\n");
 
     Unused << mTransactionParent->SendConfirmRegister(aTransactionId, result);
     ClearTransaction();
@@ -714,6 +722,8 @@ void WinWebAuthnManager::Sign(PWebAuthnTransactionParent* aTransactionParent,
     if (pbU2fAppIdUsed && *pbU2fAppIdUsed) {
       extensions.AppendElement(WebAuthnExtensionResultAppId(true));
     }
+    std::cout << "WinWebAuthnAuthnManager::WebAuthnGetAssertionResult -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
+
 
     WebAuthnGetAssertionResult result(aInfo.ClientDataJSON(), keyHandle,
                                       signature, authenticatorData, extensions,
