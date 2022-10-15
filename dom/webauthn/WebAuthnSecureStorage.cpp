@@ -47,7 +47,7 @@ WebAuthnSecureStorage::WebAuthnSecureStorage() {
 static StaticRefPtr<WebAuthnSecureStorage> gWebAuthnSecureStorage;
 
 
-WebAuthnSecureStorage* WebAuthnSecureStorage::GetInstance() {
+WebAuthnSecureStorage* WebAuthnSecureStorage::GetInstance() { // get Instance
   // mozilla::ipc::AssertIsInMainProcess();
   // AssertIsOnMainThread();
   printf("WebAuthnSecureStorage::GetInstance -- thread: ");

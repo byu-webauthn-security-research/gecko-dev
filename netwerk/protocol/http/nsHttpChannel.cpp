@@ -8,7 +8,7 @@
 #include "HttpLog.h"
 
 #include <inttypes.h>
-#include <unistd.h>
+// #include <unistd.h>
 #include <iostream>
 #include <thread>
 #include "mozilla/ipc/BackgroundParent.h"
@@ -1981,7 +1981,7 @@ nsresult nsHttpChannel::ProcessResponse() {
   LOG(("nsHttpChannel::ProcessResponse [this=%p httpStatus=%u]\n", this,
        httpStatus));
 
-  std::cout << "nsHttpChannel::ProcessResponse -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getppid() << std::endl;
+  std::cout << "nsHttpChannel::ProcessResponse -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
 
   nsCString webauthn_req_initial;
   nsresult rv = mResponseHead->GetHeader(nsHttp::WebAuthn_Req, webauthn_req_initial);
@@ -1993,9 +1993,11 @@ nsresult nsHttpChannel::ProcessResponse() {
 
     printf("nsHttpChannel::ProcessResponse -- host: %s\n", host.get());
 
+
     WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
 
     storage->SetSecureOptions(webauthn_req_initial);
+    std::cout<< "Webauthn details: "<< storage->GetSecureOptions() << std::endl;
   }
 
   // Gather data on whether the transaction and page (if this is
@@ -2100,6 +2102,7 @@ nsresult nsHttpChannel::ProcessResponse() {
 
 void nsHttpChannel::AsyncContinueProcessResponse() {
   nsresult rv;
+  //std::cout << "ASYNC Continue Process Response "<< std::endl;
   rv = ContinueProcessResponse1();
   if (NS_FAILED(rv)) {
     // A synchronous failure here would normally be passed as the return
@@ -2191,6 +2194,7 @@ nsresult nsHttpChannel::ContinueProcessResponse1() {
 }
 
 nsresult nsHttpChannel::ContinueProcessResponse2(nsresult rv) {
+  //std::cout << "Continue Process Response 2"<< std::endl;
   if (NS_FAILED(rv) && !mCanceled) {
     // The process switch failed, cancel this channel.
     Cancel(rv);
@@ -2220,6 +2224,8 @@ nsresult nsHttpChannel::ContinueProcessResponse2(nsresult rv) {
 nsresult nsHttpChannel::ContinueProcessResponse3(nsresult rv) {
   LOG(("nsHttpChannel::ContinueProcessResponse3 [this=%p, rv=%" PRIx32 "]",
        this, static_cast<uint32_t>(rv)));
+
+    //std::cout << " Continue Process Response 3"<< std::endl;
 
   if (NS_SUCCEEDED(rv)) {
     // redirectTo() has passed through, we don't want to go on with
@@ -2403,6 +2409,7 @@ nsresult nsHttpChannel::ContinueProcessResponse3(nsresult rv) {
 
 nsresult nsHttpChannel::ContinueProcessResponseAfterPartialContent(
     nsresult aRv) {
+  //std::cout << "Continue Process Response After Partial Content"<< std::endl;
   LOG(
       ("nsHttpChannel::ContinueProcessResponseAfterPartialContent "
        "[this=%p, rv=%" PRIx32 "]",
@@ -2413,6 +2420,7 @@ nsresult nsHttpChannel::ContinueProcessResponseAfterPartialContent(
 }
 
 nsresult nsHttpChannel::ContinueProcessResponseAfterNotModified(nsresult aRv) {
+  //std::cout << "Continue Process Response After Not modified"<< std::endl;
   LOG(
       ("nsHttpChannel::ContinueProcessResponseAfterNotModified "
        "[this=%p, rv=%" PRIx32 "]",
@@ -2546,6 +2554,7 @@ nsresult nsHttpChannel::ContinueProcessResponse4(nsresult rv) {
 }
 
 nsresult nsHttpChannel::ProcessNormal() {
+  //std::cout << "Continue Process Response Normal"<< std::endl;
   LOG(("nsHttpChannel::ProcessNormal [this=%p]\n", this));
 
   return ContinueProcessNormal(NS_OK);
