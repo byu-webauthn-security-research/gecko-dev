@@ -56,13 +56,13 @@ mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestRegister(
   // deserialize this so that the id and the info are gotten
 
   U2FTokenManager* mgr = U2FTokenManager::Get();
-  mgr->Register(this, options, aTransactionInfo); // need to change these two parameters, id and info so that it is us injecting the authen token
+  mgr->Register(this, options, storage->Info); // need to change these two parameters, id and info so that it is us injecting the authen token
 #endif
 
   return IPC_OK();
 }
 
-mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestSign( // this is second half
+mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestSign(
     const uint64_t& aTransactionId,
     const WebAuthnGetAssertionInfo& aTransactionInfo) {
   ::mozilla::ipc::AssertIsOnBackgroundThread();
@@ -75,6 +75,8 @@ mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestSign( // this is s
     mgr->Sign(this, aTransactionId, aTransactionInfo);
   } else {
     U2FTokenManager* mgr = U2FTokenManager::Get();
+    std::cout << "WebAuthnTransactionParent::AreWebAuthNApisAvailable else inner________________ (OS WIN) -- Thread: " <<std::endl;
+    WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
     mgr->Sign(this, aTransactionId, aTransactionInfo);
   }
 #else

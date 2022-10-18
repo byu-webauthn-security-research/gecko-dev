@@ -168,8 +168,7 @@ void WinWebAuthnManager::Register(
   MOZ_LOG(gWinWebAuthnManagerLog, LogLevel::Debug, ("WinWebAuthNRegister"));
 
   ClearTransaction();
-  std::cout << "WinWebAuthnAuthnManager::Start Register -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
-  WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
+  std::cout << "Start of register func" << std::endl;
   mTransactionParent = aTransactionParent;
 
   BYTE U2FUserId = 0x01;
@@ -272,7 +271,7 @@ void WinWebAuthnManager::Register(
     winRequireResidentKey = sel.requireResidentKey();
 
     // AttestationConveyance
-    printf("Windows attestation 272 ______________________________\n");
+    //printf("Windows attestation 272 ______________________________\n");
     AttestationConveyancePreference attestation =
         extra.attestationConveyancePreference();
     switch (attestation) {
@@ -394,21 +393,22 @@ void WinWebAuthnManager::Register(
     WebAuthNCredentialOptions.Extensions.cExtensions = cExtensions;
     WebAuthNCredentialOptions.Extensions.pExtensions = rgExtension;
   }
-  printf("Windows attestation 394 ______________________________\n");
+  //printf("Windows attestation 394 ______________________________\n");
   WEBAUTHN_CREDENTIAL_ATTESTATION* pWebAuthNCredentialAttestation = nullptr;
 
   // Bug 1518876: Get Window Handle from Content process for Windows WebAuthN
   // APIs
   HWND hWnd = GetForegroundWindow();
-
+  std::cout << "WINWEB::RecvRequestRegister -- outside  BEFORE HR: "<< std::endl;
   HRESULT hr = gWinWebauthnMakeCredential(
       hWnd, &rpInfo, &userInfo, &WebAuthNCredentialParameters,
       &WebAuthNClientData, &WebAuthNCredentialOptions,
       &pWebAuthNCredentialAttestation);
 
   mCancellationIds.erase(aTransactionId);
-
+  std::cout << "WINWEB::RecvRequestRegister -- outside  : "<< std::endl;
   if (hr == S_OK) {
+    std::cout << "WINWEB::RecvRequestRegister -- inside : "<< std::endl;
     nsTArray<uint8_t> credentialId;
     credentialId.AppendElements(pWebAuthNCredentialAttestation->pbCredentialId,
                                 pWebAuthNCredentialAttestation->cbCredentialId);
@@ -504,11 +504,12 @@ void WinWebAuthnManager::Register(
     }
     WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
     nsCString options = storage->GetSecureOptions();
-    std::cout << "WINWEB::RecvRequestRegister -- options : "<< options<< std::endl;
-    WebAuthnMakeCredentialResult result(aInfo.ClientDataJSON(), attObject,
+    std::cout << "WINWEB::RecvRequestRegister -- result : "<< std::endl;
+    WebAuthnMakeCredentialResult result(aInfo.ClientDataJSON(), attObject, // store this
                                         credentialId, authenticatorData,
                                         extensions);
-    printf("Windows attestation 506______________________________\n");
+    storage->SetResult(result);
+    //printf("Windows attestation 506______________________________\n");
 
     Unused << mTransactionParent->SendConfirmRegister(aTransactionId, result);
     ClearTransaction();
@@ -544,6 +545,7 @@ void WinWebAuthnManager::Sign(PWebAuthnTransactionParent* aTransactionParent,
   MOZ_LOG(gWinWebAuthnManagerLog, LogLevel::Debug, ("WinWebAuthNSign"));
 
   ClearTransaction();
+  std::cout << "Start of sign func" << std::endl;
   mTransactionParent = aTransactionParent;
 
   // User Verification Requirement
@@ -722,7 +724,7 @@ void WinWebAuthnManager::Sign(PWebAuthnTransactionParent* aTransactionParent,
     if (pbU2fAppIdUsed && *pbU2fAppIdUsed) {
       extensions.AppendElement(WebAuthnExtensionResultAppId(true));
     }
-    std::cout << "WinWebAuthnAuthnManager::WebAuthnGetAssertionResult -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
+    std::cout<< "WinWebAuthnAuthnManager::WebAuthnGetAssertionResult -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
 
 
     WebAuthnGetAssertionResult result(aInfo.ClientDataJSON(), keyHandle,

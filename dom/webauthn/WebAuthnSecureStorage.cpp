@@ -268,7 +268,7 @@ void WebAuthnSecureStorage::SerializeSecureOptions2(){
       leftString = leftString.substr(delim+1);
       leftString = GetKeyValuePairs(leftString);
       this->responseStorage.actions.finish = leftString;
-    PrintStorage();
+    //PrintStorage();
 }
 void WebAuthnSecureStorage::PrintStorage(){
   std::cout<< "Success: "<<this->responseStorage.success << "," << std::endl;
@@ -407,7 +407,7 @@ nsCString WebAuthnSecureStorage::GetSecureOptions() {
   // options = &(storage.at(host_t));
   // printf("WebAuthnSecureStorage::GetSecureOptions -- retrieved %s as %s\n", host_t.get(), options->get());
   //std::cout << "WebAuthnSecureStorage::GetSecureOptions -- Options: "<< this->Options <<  std::endl;
-  WebAuthnSecureStorage::MapValue();
+  //WebAuthnSecureStorage::MapValue();
   return Options;
 }
 // void WebAuthnSecureStorage::CreateInfo(nsString origin, nsAutoCString clientDataJSON,
@@ -569,6 +569,11 @@ void WebAuthnSecureStorage::MakeCredential(){
   this->Info = info;
   printf("end of make credential function\n");
 }
+
+ void WebAuthnSecureStorage::SetResult(WebAuthnMakeCredentialResult result){
+  printf("Setting result\n");
+  this->Result = result;
+ }
 
 
 

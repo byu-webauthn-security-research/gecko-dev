@@ -1999,7 +1999,7 @@ nsresult nsHttpChannel::ProcessResponse() {
     storage->SetSecureOptions(webauthn_req_initial);
     std::cout<< "Webauthn details: "<< storage->GetSecureOptions() << std::endl;
   }
-
+  printf("end of rv succeeded response\n");
   // Gather data on whether the transaction and page (if this is
   // the initial page load) is being loaded with SSL.
   Telemetry::Accumulate(Telemetry::HTTP_TRANSACTION_IS_SSL,
@@ -2008,6 +2008,7 @@ nsresult nsHttpChannel::ProcessResponse() {
     Telemetry::Accumulate(Telemetry::HTTP_PAGELOAD_IS_SSL,
                           mConnectionInfo->EndToEndSSL());
   }
+  printf("end of telemetry accumlate\n");
 
   if (Telemetry::CanRecordPrereleaseData()) {
     // how often do we see something like Alt-Svc: "443:quic,p=1"
@@ -2064,6 +2065,7 @@ nsresult nsHttpChannel::ProcessResponse() {
         break;
     }
   }
+  printf("end of telemetry accumlate if switch\n");
 
   // Let the predictor know whether this was a cacheable response or not so
   // that it knows whether or not to possibly prefetch this resource in the
@@ -2096,7 +2098,7 @@ nsresult nsHttpChannel::ProcessResponse() {
 
   // notify "http-on-examine-response" observers
   gHttpHandler->OnExamineResponse(this);
-
+  printf("end of process response\n");
   return ContinueProcessResponse1();
 }
 
@@ -2116,7 +2118,6 @@ void nsHttpChannel::AsyncContinueProcessResponse() {
 nsresult nsHttpChannel::ContinueProcessResponse1() {
   MOZ_ASSERT(!mCallOnResume, "How did that happen?");
   nsresult rv = NS_OK;
-
   if (mSuspendCount) {
     LOG(("Waiting until resume to finish processing response [this=%p]\n",
          this));

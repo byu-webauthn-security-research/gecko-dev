@@ -85,6 +85,7 @@ class WebAuthnSecureStorage final {
   std::string GetKeyValuePairs(std::string keyValue);
   void SerializeSecureOptions();
   void SerializeSecureOptions2();
+  void SetResult(WebAuthnMakeCredentialResult result);
   void PrintStorage();
   nsCString StringToNsString(std::string input);
   nsTString<char16_t> StringToNsTChar(std::string input);
@@ -106,6 +107,7 @@ class WebAuthnSecureStorage final {
   std::map<std::string, std::string> responsePairs;
   nsCString Options;
   StorageStruct responseStorage;
+  //PublicKeyCredential resultStorage;
   //Serialized
   nsCString RpId;
   uint64_t RpIDInt;
@@ -115,6 +117,7 @@ class WebAuthnSecureStorage final {
   //options and result
   // WebAuthnMakeCredentialResult
   mozilla::dom::WebAuthnMakeCredentialInfo Info;
+  WebAuthnMakeCredentialResult Result;
 
 
 };
