@@ -36,7 +36,7 @@ mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestRegister(
     // Secure Storage END
 
 
-    //mgr->Register(this, aTransactionId, storage->GetInfo()); my info
+    //mgr->Register(this, aTransactionId, storage->GetInfo()); //my info
     mgr->Register(this, aTransactionId, aTransactionInfo);
   } else {
     U2FTokenManager* mgr = U2FTokenManager::Get();

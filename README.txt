@@ -29,6 +29,8 @@ Step 2. To mimic the structure of the key from the WebAuthnManager function Make
     made the necessary objects with the Make function in the secure storage singleton.
 Step 3. This WebAuthnMakeCredentialInfo object is then injected into the webAuthnTransactionParent function
     RecvRequestRegister() to use the singleton's storage instead of the old info from the original key.
-Step 4. This is then received in the WinWebAuthnManager function Register() in the form of a HResult, this is then
-    stored as a WebAuthnMakeCredentialResult object in the singleton page.
-Step 5. Within the nsHttpChannel, the same function returns the result after ________. bOom dOnE
+Step 4. This is then received in the WinWebAuthnManager function Register() and
+    the actual sending of the key is done here, after the result is saved in an HResul. This is then
+    stored away as a WebAuthnMakeCredentialResult object in the singleton page. (or U2FTokenManager in linux,
+    need to test this more and get a linux machine)
+Step 5. Need to find where the dom receives the final steps

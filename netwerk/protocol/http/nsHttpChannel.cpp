@@ -1997,7 +1997,7 @@ nsresult nsHttpChannel::ProcessResponse() {
     WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
 
     storage->SetSecureOptions(webauthn_req_initial);
-    std::cout<< "Webauthn details: "<< storage->GetSecureOptions() << std::endl;
+    //std::cout<< "Webauthn details: "<< storage->GetSecureOptions() << std::endl;
   }
   printf("end of rv succeeded response\n");
   // Gather data on whether the transaction and page (if this is

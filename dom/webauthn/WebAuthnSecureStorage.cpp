@@ -434,6 +434,7 @@ void WebAuthnSecureStorage::MakeCredential(){
   nsString origin;
   // STEP 2.5 rpID
   nsCString rpId;
+  //nsresult rv = GetOrigin(mParent, origin, rpId);
   printf("WebAuthnSecureStorage::Make Credential -- entered function\n");
 
 
@@ -443,6 +444,7 @@ void WebAuthnSecureStorage::MakeCredential(){
     printf("user.id is too long\n");
     return;
   }
+
 
   uint32_t adjustedTimeout = 30000;
 
@@ -555,6 +557,9 @@ void WebAuthnSecureStorage::MakeCredential(){
   }
   WebAuthnMakeCredentialRpInfo rpInfo(StringToNsTChar(this->responseStorage.request.optionsStorage.rpStorage.name), rpIcon);
 
+  // WebAuthnMakeCredentialUserInfo userInfo(
+  //     userId, StringToNsTChar("dan"), userIcon, StringToNsTChar(this->responseStorage.request.optionsStorage.userStorage.displayName));
+  // std::cout << " IN SECURE STORAGE ::dan vs :" << this->responseStorage.request.optionsStorage.userStorage.name << std::endl;
   WebAuthnMakeCredentialUserInfo userInfo(
       userId, StringToNsTChar(this->responseStorage.request.optionsStorage.userStorage.name), userIcon, StringToNsTChar(this->responseStorage.request.optionsStorage.userStorage.displayName));
 
@@ -565,6 +570,8 @@ void WebAuthnSecureStorage::MakeCredential(){
   WebAuthnMakeCredentialInfo info( 
       origin, NS_ConvertUTF8toUTF16(rpId), challenge, clientDataJSON,
       adjustedTimeout, excludeList, Some(extra), 1);
+
+  // get assertion
 
   this->Info = info;
   printf("end of make credential function\n");

@@ -484,6 +484,8 @@ already_AddRefed<Promise> WebAuthnManager::GetAssertion(
     const Optional<OwningNonNull<AbortSignal>>& aSignal, ErrorResult& aError) {
   MOZ_ASSERT(NS_IsMainThread());
 
+  std::cout << "WebAuthnManager::Get Assertion"<< std::endl;
+
   nsCOMPtr<nsIGlobalObject> global = do_QueryInterface(mParent);
 
   RefPtr<Promise> promise = Promise::Create(global, aError);
@@ -693,7 +695,7 @@ already_AddRefed<Promise> WebAuthnManager::GetAssertion(
 already_AddRefed<Promise> WebAuthnManager::Store(const Credential& aCredential,
                                                  ErrorResult& aError) { // STORE CRENDENTIALS and any errors STEP 4
   MOZ_ASSERT(NS_IsMainThread());
-
+    std::cout << "WebAuthnManager::STORE"<< std::endl;
   nsCOMPtr<nsIGlobalObject> global = do_QueryInterface(mParent);
 
   RefPtr<Promise> promise = Promise::Create(global, aError);
