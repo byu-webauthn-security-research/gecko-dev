@@ -87,13 +87,14 @@ class WebAuthnSecureStorage final {
   void SerializeSecureOptions2();
   void SetResult(WebAuthnMakeCredentialResult result);
   void PrintStorage();
+  void AssignRpID(nsString RpId);
   nsCString StringToNsString(std::string input);
   nsTString<char16_t> StringToNsTChar(std::string input);
   long StringToLong(std::string input);
-
   void MakeCredential();
 
   void MapValue();
+  StorageStruct responseStorage;
   std::string IsChanged();
   //void CreateInfo(nsString origin, nsAutoCString clientDataJSON, uint32_t adjustedTimeout,nsTArray<WebAuthnScopedCredential> excludeList, WebAuthnMakeCredentialExtraInfo extra, BrowsingContext * context);
   // int AddRef();
@@ -106,7 +107,7 @@ class WebAuthnSecureStorage final {
 
   std::map<std::string, std::string> responsePairs;
   nsCString Options;
-  StorageStruct responseStorage;
+  //StorageStruct responseStorage;
   //PublicKeyCredential resultStorage;
   //Serialized
   nsCString RpId;

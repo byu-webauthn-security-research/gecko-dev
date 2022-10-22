@@ -186,15 +186,21 @@ void WinWebAuthnManager::Register(
   std::cout << "user INFO : Storage : " << storage->GetInfo().Extra().ref().User().Icon().get()<< std::endl;
   std::cout << "user NORM : " << aInfo.Extra().ref().User().Icon().get() << std::endl;
 
+  std::cout << "user challenge not in object: " << storage->responseStorage.request.optionsStorage.challenge << std::endl;
+  // std::cout << "user challenge : Storage : " << storage->GetInfo().Extra().ref().<< std::endl;
+  // std::cout << "norm challenge : " << aInfo.Extra().ref().Challenge().get() << std::endl;
+
   // credential parameters
-  for (const auto& coseAlg : aInfo.Extra().ref().coseAlgs()) {
-      if (storage->GetInfo().Extra().ref().coseAlgs().Contains(coseAlg)){
-        printf("good\n");
-      }
-      else{
-        printf("not good\n");
-      }
-  }
+  // for (const auto& coseAlg : aInfo.Extra().ref().coseAlgs()) {
+  //   std::cout << "COSE ALG FROM AINFO : " << coseAlg.alg() << std::endl;
+  //   for (const auto& coseAlg2 :storage->GetInfo().Extra().ref().coseAlgs() ){
+  //     std::cout << "COSE ALG FROM AINFO : " << coseAlg2.alg() << std::endl;
+  //     // if (coseAlg2.alg() == coseAlg.alg()){
+  //     //   printf("good\n");
+  //     // }
+  //   }
+  //   printf("not good");
+  // }
   // web authn n client data
 
   // web authn credential options
@@ -436,6 +442,7 @@ void WinWebAuthnManager::Register(
   // APIs
   HWND hWnd = GetForegroundWindow();
   std::cout << "WINWEB::RecvRequestRegister -- outside  BEFORE HR: "<< std::endl;
+
   HRESULT hr = gWinWebauthnMakeCredential(
       hWnd, &rpInfo, &userInfo, &WebAuthNCredentialParameters,
       &WebAuthNClientData, &WebAuthNCredentialOptions,

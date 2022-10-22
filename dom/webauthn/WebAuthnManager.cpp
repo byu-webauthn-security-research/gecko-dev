@@ -259,6 +259,8 @@ already_AddRefed<Promise> WebAuthnManager::MakeCredential(
   // STEP 2.5 rpID
   nsCString rpId;
   nsresult rv = GetOrigin(mParent, origin, rpId);
+  std::cerr << "ORIGING_______________________________________________________: ";
+  std::cerr << origin << std::endl;
    WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
   std::cout<< storage->GetSecureOptions() << std::endl;
   //storage->MakeCredential();

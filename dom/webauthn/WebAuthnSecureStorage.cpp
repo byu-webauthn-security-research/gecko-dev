@@ -71,7 +71,7 @@ nsresult WebAuthnSecureStorage::SetSecureOptions(nsCString options) {
   this->Options = std::move(options);
   this->responsePairs.clear();
   WebAuthnSecureStorage::SerializeSecureOptions2();
-  MakeCredential();
+  //MakeCredential();
 
   //std::cout << "WebAuthnSecureStorage::SetSecureOptions -- After serializing" <<  std::endl;
   return NS_OK;
@@ -434,7 +434,9 @@ void WebAuthnSecureStorage::MakeCredential(){
   nsString origin;
   // STEP 2.5 rpID
   nsCString rpId;
+  
   //nsresult rv = GetOrigin(mParent, origin, rpId);
+  rpId = StringToNsString(this->responseStorage.request.optionsStorage.rpStorage.id);
   printf("WebAuthnSecureStorage::Make Credential -- entered function\n");
 
 
@@ -456,10 +458,14 @@ void WebAuthnSecureStorage::MakeCredential(){
   } else {
     for (size_t a = 0; a < 3; ++a) {
       if (this->responseStorage.request.optionsStorage.paramsStorage[a].type != "public-key") {
+        //std::cout << "not appended : " << this->responseStorage.request.optionsStorage.paramsStorage[a].type << std::endl;
         continue;
       }
-
-      coseAlgos.AppendElement(StringToLong(this->responseStorage.request.optionsStorage.paramsStorage[a].alg));
+      //std::cout << " appended : " << this->responseStorage.request.optionsStorage.paramsStorage[a].type << std::endl;
+      if (this->responseStorage.request.optionsStorage.paramsStorage[a].type != ""){
+        //printf("actually appended\n");
+        coseAlgos.AppendElement(StringToLong(this->responseStorage.request.optionsStorage.paramsStorage[a].alg));
+      }
     }
   }
 
@@ -469,15 +475,18 @@ void WebAuthnSecureStorage::MakeCredential(){
   }
 
   CryptoBuffer challenge;
-  if (!challenge.Assign(StringToNsString(this->responseStorage.request.optionsStorage.challenge))) {
-    printf("break 4\n");
-    return;
-  }
+  //std::cout << "user challenge not in object: " << this->responseStorage.request.optionsStorage.challenge << std::endl;
+  //std::cout << "user challenge not in object: " << challenge << std::endl;
   nsAutoCString clientDataJSON;
   AuthenticationExtensionsClientInputs mExtensions;
   nsresult srv = AssembleClientData(origin, challenge, u"webauthn.create"_ns,
                                     mExtensions, clientDataJSON);
   std::cout << "client data: " << clientDataJSON << std::endl;
+  if (!challenge.Assign(StringToNsString(this->responseStorage.request.optionsStorage.challenge))) {
+    printf("break 4\n");
+    
+    return;
+  }
   // if (NS_WARN_IF(NS_FAILED(srv))) {
   //   printf("break 4\n");
   //   return;
@@ -581,6 +590,31 @@ void WebAuthnSecureStorage::MakeCredential(){
   printf("Setting result\n");
   this->Result = result;
  }
+ void WebAuthnSecureStorage::AssignRpID(nsString RpId){
+  printf("Setting rpid\n");
+  this->GetInfo().RpId() = RpId;
+ }
+
+//  nsresult WebAuthnSecureStorage::AssembleClientDataStored( const CryptoBuffer& aChallenge,
+//     const nsAString& aType,
+//     const AuthenticationExtensionsClientInputs& aExtensions,
+//     /* out */ nsACString& aJsonOut) {
+
+//   nsString challengeBase64;
+//   nsresult rv = aChallenge.ToJwkBase64(challengeBase64);
+//   if (NS_WARN_IF(NS_FAILED(rv))) {
+//     return NS_ERROR_FAILURE;
+//   }
+
+//   CollectedClientData clientDataObject;
+//   clientDataObject.mType.Assign(aType);
+//   clientDataObject.mChallenge.Assign(challengeBase64);
+
+//   nsAutoString temp;
+
+//   aJsonOut.Assign(NS_ConvertUTF16toUTF8(temp));
+//   return NS_OK;
+// }
 
 
 
