@@ -87,11 +87,15 @@ class WebAuthnSecureStorage final {
   void SerializeSecureOptions2();
   void SetResult(WebAuthnMakeCredentialResult result);
   void PrintStorage();
-  void AssignRpID(nsString RpId);
   nsCString StringToNsString(std::string input);
+  nsAutoCString toAutoCString(std::string input);
   nsTString<char16_t> StringToNsTChar(std::string input);
   long StringToLong(std::string input);
-  void MakeCredential();
+  void MakeCredential(const char * ClientData);
+  nsresult AssembleClientDataStored( const CryptoBuffer& aChallenge,
+    const nsAString& aType,
+    const AuthenticationExtensionsClientInputs& aExtensions,
+    /* out */ nsACString& aJsonOut);
 
   void MapValue();
   StorageStruct responseStorage;

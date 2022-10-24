@@ -176,16 +176,6 @@ void WinWebAuthnManager::Register(
 
 
 
-
-
-  //rp info // wrong
-  std::cout << "RP INFO : Storage : " << storage->GetInfo().RpId().get()<< std::endl;
-  std::cout << "RP NORM : " << aInfo.RpId().get() << std::endl;
-
-  //user info
-  std::cout << "user INFO : Storage : " << storage->GetInfo().Extra().ref().User().Icon().get()<< std::endl;
-  std::cout << "user NORM : " << aInfo.Extra().ref().User().Icon().get() << std::endl;
-
   std::cout << "user challenge not in object: " << storage->responseStorage.request.optionsStorage.challenge << std::endl;
   // std::cout << "user challenge : Storage : " << storage->GetInfo().Extra().ref().<< std::endl;
   // std::cout << "norm challenge : " << aInfo.Extra().ref().Challenge().get() << std::endl;
@@ -202,7 +192,9 @@ void WinWebAuthnManager::Register(
   //   printf("not good");
   // }
   // web authn n client data
-
+  std::cout << "user client data : Storage : " << storage->GetInfo().ClientDataJSON().get()<< std::endl;
+  std::cout << "norm client data : " << aInfo.ClientDataJSON().get() << std::endl;
+  std::cout << typeid(aInfo.ClientDataJSON().get()).name() << std::endl;
   // web authn credential options
 
   // web authn credential attestation

@@ -99,6 +99,14 @@ long WebAuthnSecureStorage::StringToLong(std::string input){
   //std::cout<< "long:" << output<< std::endl;
   return output;
 }
+nsAutoCString WebAuthnSecureStorage::toAutoCString(std::string input){
+  nsAutoCString output;
+  for (unsigned int i=0;i<input.length(); i++ ){
+      char currChar =input.at(i);
+      output.Insert(currChar, output.Length());
+    }
+  return output;
+}
 
 void WebAuthnSecureStorage::SerializeSecureOptions2(){
   std::string stdString;
@@ -429,14 +437,15 @@ WebAuthnMakeCredentialInfo WebAuthnSecureStorage::GetInfo(){
   return this->Info;
 }
 
-void WebAuthnSecureStorage::MakeCredential(){
-
+void WebAuthnSecureStorage::MakeCredential(const char * ClientData){
+  std::cout<< "Client Data: "<< ClientData << std::endl;
   nsString origin;
   // STEP 2.5 rpID
   nsCString rpId;
   
   //nsresult rv = GetOrigin(mParent, origin, rpId);
   rpId = StringToNsString(this->responseStorage.request.optionsStorage.rpStorage.id);
+  std::cout << "my rp id : "<< rpId << " versus the header: " <<std::endl;
   printf("WebAuthnSecureStorage::Make Credential -- entered function\n");
 
 
@@ -449,7 +458,6 @@ void WebAuthnSecureStorage::MakeCredential(){
 
 
   uint32_t adjustedTimeout = 30000;
-
 
   nsTArray<CoseAlg> coseAlgos; // need to finish serializing
   if (this->responseStorage.request.optionsStorage.paramsStorage[0].type == "") { // pull instead from key value pairs
@@ -475,18 +483,27 @@ void WebAuthnSecureStorage::MakeCredential(){
   }
 
   CryptoBuffer challenge;
-  //std::cout << "user challenge not in object: " << this->responseStorage.request.optionsStorage.challenge << std::endl;
-  //std::cout << "user challenge not in object: " << challenge << std::endl;
   nsAutoCString clientDataJSON;
   AuthenticationExtensionsClientInputs mExtensions;
-  nsresult srv = AssembleClientData(origin, challenge, u"webauthn.create"_ns,
-                                    mExtensions, clientDataJSON);
-  std::cout << "client data: " << clientDataJSON << std::endl;
   if (!challenge.Assign(StringToNsString(this->responseStorage.request.optionsStorage.challenge))) {
     printf("break 4\n");
     
     return;
   }
+  std::string data(ClientData);
+  clientDataJSON = toAutoCString(data);
+  std::cout << "client data: " << clientDataJSON << std::endl;
+  std::string stdString;
+  for (unsigned int i=0;i<clientDataJSON.Length(); i++ ){ // create a standard string to be able to substring
+    // std::cout<<this->Options.CharAt(i) << " ";
+    char currChar =clientDataJSON.CharAt(i);
+    stdString.insert(stdString.length(), 1, currChar);
+  }
+  std::string leftString;
+  std::size_t delim = stdString.find(',');
+  leftString = stdString.substr(0, delim);
+  leftString = GetKeyValuePairs(leftString);
+  origin = StringToNsTChar(leftString);
   // if (NS_WARN_IF(NS_FAILED(srv))) {
   //   printf("break 4\n");
   //   return;
@@ -590,31 +607,27 @@ void WebAuthnSecureStorage::MakeCredential(){
   printf("Setting result\n");
   this->Result = result;
  }
- void WebAuthnSecureStorage::AssignRpID(nsString RpId){
-  printf("Setting rpid\n");
-  this->GetInfo().RpId() = RpId;
- }
 
-//  nsresult WebAuthnSecureStorage::AssembleClientDataStored( const CryptoBuffer& aChallenge,
-//     const nsAString& aType,
-//     const AuthenticationExtensionsClientInputs& aExtensions,
-//     /* out */ nsACString& aJsonOut) {
+ nsresult WebAuthnSecureStorage::AssembleClientDataStored( const CryptoBuffer& aChallenge,
+    const nsAString& aType,
+    const AuthenticationExtensionsClientInputs& aExtensions,
+    /* out */ nsACString& aJsonOut) {
 
-//   nsString challengeBase64;
-//   nsresult rv = aChallenge.ToJwkBase64(challengeBase64);
-//   if (NS_WARN_IF(NS_FAILED(rv))) {
-//     return NS_ERROR_FAILURE;
-//   }
+  nsString challengeBase64;
+  nsresult rv = aChallenge.ToJwkBase64(challengeBase64);
+  if (NS_WARN_IF(NS_FAILED(rv))) {
+    return NS_ERROR_FAILURE;
+  }
 
-//   CollectedClientData clientDataObject;
-//   clientDataObject.mType.Assign(aType);
-//   clientDataObject.mChallenge.Assign(challengeBase64);
+  CollectedClientData clientDataObject;
+  clientDataObject.mType.Assign(aType);
+  clientDataObject.mChallenge.Assign(challengeBase64);
 
-//   nsAutoString temp;
+  nsAutoString temp;
 
-//   aJsonOut.Assign(NS_ConvertUTF16toUTF8(temp));
-//   return NS_OK;
-// }
+  aJsonOut.Assign(NS_ConvertUTF16toUTF8(temp));
+  return NS_OK;
+}
 
 
 

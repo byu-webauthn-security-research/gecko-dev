@@ -33,8 +33,8 @@ mozilla::ipc::IPCResult WebAuthnTransactionParent::RecvRequestRegister(
     std::cout << "WebAuthnTransactionParent::RecvRequestRegister -- ID from storage if OS : "<< storage->GetID()<< std::endl;
     std::cout <<"WebAuthnTransactionParent::RecvRequestRegister -- atransaction id: " << aTransactionId <<std::endl;
     //std::cout <<"WebAuthnTransactionParent::RecvRequestRegister -- atransaction info: " << aTransactionInfo.rpID() <<std::endl;
-    nsPIDOMWindowInner* mParent;
-    storage->MakeCredential();
+    //WebAuthnManager manager;
+    storage->MakeCredential(aTransactionInfo.ClientDataJSON().get());
     // Secure Storage END
     mgr->Register(this, aTransactionId, storage->GetInfo()); //my info
     //mgr->Register(this, aTransactionId, aTransactionInfo);
