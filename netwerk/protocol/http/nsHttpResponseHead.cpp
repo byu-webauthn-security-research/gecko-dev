@@ -1040,7 +1040,7 @@ nsresult nsHttpResponseHead::GetExpiresValue_locked(uint32_t* result) const {
   return NS_OK;
 }
 
-nsresult nsHttpResponseHead::GetLastModifiedValue(uint32_t* result) {
+nsresult nsHttpResponseHead:: GetLastModifiedValue(uint32_t* result) {
   RecursiveMutexAutoLock monitor(mRecursiveMutex);
   return ParseDateHeader(nsHttp::Last_Modified, result);
 }

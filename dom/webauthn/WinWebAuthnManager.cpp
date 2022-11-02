@@ -168,23 +168,23 @@ void WinWebAuthnManager::Register(
   MOZ_LOG(gWinWebAuthnManagerLog, LogLevel::Debug, ("WinWebAuthNRegister"));
 
   ClearTransaction();
-  std::cout << "Start of register func" << std::endl;
+  //std::cout << "Start of register func" << std::endl;
     // testing differences between my version and the correct one
-  std::cout << "WINWEB::RecvRequestRegister -- TESTING _________ "<< std::endl;
+  ////std::cout << "WINWEB::RecvRequestRegister -- TESTING _________ "<< std::endl;
   WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
 
 
 
 
-  std::cout << "user challenge not in object: " << storage->responseStorage.request.optionsStorage.challenge << std::endl;
-  // std::cout << "user challenge : Storage : " << storage->GetInfo().Extra().ref().<< std::endl;
-  // std::cout << "norm challenge : " << aInfo.Extra().ref().Challenge().get() << std::endl;
+  ////std::cout << "user challenge not in object: " << storage->responseStorage.request.optionsStorage.challenge << std::endl;
+  // //std::cout << "user challenge : Storage : " << storage->GetInfo().Extra().ref().<< std::endl;
+  // //std::cout << "norm challenge : " << aInfo.Extra().ref().Challenge().get() << std::endl;
 
   // credential parameters
   // for (const auto& coseAlg : aInfo.Extra().ref().coseAlgs()) {
-  //   std::cout << "COSE ALG FROM AINFO : " << coseAlg.alg() << std::endl;
+  //   //std::cout << "COSE ALG FROM AINFO : " << coseAlg.alg() << std::endl;
   //   for (const auto& coseAlg2 :storage->GetInfo().Extra().ref().coseAlgs() ){
-  //     std::cout << "COSE ALG FROM AINFO : " << coseAlg2.alg() << std::endl;
+  //     //std::cout << "COSE ALG FROM AINFO : " << coseAlg2.alg() << std::endl;
   //     // if (coseAlg2.alg() == coseAlg.alg()){
   //     //   printf("good\n");
   //     // }
@@ -192,14 +192,14 @@ void WinWebAuthnManager::Register(
   //   printf("not good");
   // }
   // web authn n client data
-  std::cout << "user client data : Storage : " << storage->GetInfo().ClientDataJSON().get()<< std::endl;
-  std::cout << "norm client data : " << aInfo.ClientDataJSON().get() << std::endl;
-  std::cout << typeid(aInfo.ClientDataJSON().get()).name() << std::endl;
+  ////std::cout << "user client data : Storage : " << storage->GetInfo().ClientDataJSON().get()<< std::endl;
+  ////std::cout << "norm client data : " << aInfo.ClientDataJSON().get() << std::endl;
+  ////std::cout << typeid(aInfo.ClientDataJSON().get()).name() << std::endl;
   // web authn credential options
 
   // web authn credential attestation
 
-  std::cout << "WINWEB::RecvRequestRegister -- END ____TESTING _________ "<< std::endl;
+  ////std::cout << "WINWEB::RecvRequestRegister -- END ____TESTING _________ "<< std::endl;
   //std:: cout << "IN WIN WEB ::: should be dan instead of test: " << aInfo.Extra().ref().User().Name() << std::endl;
   mTransactionParent = aTransactionParent;
 
@@ -386,7 +386,7 @@ void WinWebAuthnManager::Register(
   }
 
   if (!excludeCredentials.IsEmpty()) {
-    std::cout << "WINWEB::cextension -- credentials not empty "<< std::endl;
+    //std::cout << "WINWEB::cextension -- credentials not empty "<< std::endl;
     pExcludeCredentials = excludeCredentials.Elements();
     for (DWORD i = 0; i < excludeCredentials.Length(); i++) {
       excludeCredentialsPtrs.AppendElement(&pExcludeCredentials[i]);
@@ -417,13 +417,13 @@ void WinWebAuthnManager::Register(
 
   GUID cancellationId = {0};
   if (gWinWebauthnGetCancellationId(&cancellationId) == S_OK) {
-    std::cout << "WINWEB::cancellation s okay "<< std::endl;
+    //std::cout << "WINWEB::cancellation s okay "<< std::endl;
     WebAuthNCredentialOptions.pCancellationId = &cancellationId;
     mCancellationIds.emplace(aTransactionId, &cancellationId);
   }
 
   if (cExtensions != 0) {
-    std::cout << "WINWEB::cextension -- inside not zero: "<< std::endl;
+    //std::cout << "WINWEB::cextension -- inside not zero: "<< std::endl;
     WebAuthNCredentialOptions.Extensions.cExtensions = cExtensions;
     WebAuthNCredentialOptions.Extensions.pExtensions = rgExtension;
   }
@@ -433,7 +433,7 @@ void WinWebAuthnManager::Register(
   // Bug 1518876: Get Window Handle from Content process for Windows WebAuthN
   // APIs
   HWND hWnd = GetForegroundWindow();
-  std::cout << "WINWEB::RecvRequestRegister -- outside  BEFORE HR: "<< std::endl;
+  //std::cout << "WINWEB::RecvRequestRegister -- outside  BEFORE HR: "<< std::endl;
 
   HRESULT hr = gWinWebauthnMakeCredential(
       hWnd, &rpInfo, &userInfo, &WebAuthNCredentialParameters,
@@ -441,9 +441,9 @@ void WinWebAuthnManager::Register(
       &pWebAuthNCredentialAttestation);
 
   mCancellationIds.erase(aTransactionId);
-  std::cout << "WINWEB::RecvRequestRegister -- outside  : "<< std::endl;
+  //std::cout << "WINWEB::RecvRequestRegister -- outside  : "<< std::endl;
   if (hr == S_OK) {
-    std::cout << "WINWEB::RecvRequestRegister -- inside : "<< std::endl;
+    //std::cout << "WINWEB::RecvRequestRegister -- inside : "<< std::endl;
     nsTArray<uint8_t> credentialId;
     credentialId.AppendElements(pWebAuthNCredentialAttestation->pbCredentialId,
                                 pWebAuthNCredentialAttestation->cbCredentialId);
@@ -538,7 +538,7 @@ void WinWebAuthnManager::Register(
     }
 
     nsCString options = storage->GetSecureOptions();
-    std::cout << "WINWEB::RecvRequestRegister -- result : "<< std::endl;
+    ////std::cout << "WINWEB::RecvRequestRegister -- result : "<< std::endl;
     WebAuthnMakeCredentialResult result(aInfo.ClientDataJSON(), attObject, // store this
                                         credentialId, authenticatorData,
                                         extensions);
@@ -547,10 +547,11 @@ void WinWebAuthnManager::Register(
 
     Unused << mTransactionParent->SendConfirmRegister(aTransactionId, result);
     ClearTransaction();
+    storage->StoreAttest(*pWebAuthNCredentialAttestation);
     gWinWebauthnFreeCredentialAttestation(pWebAuthNCredentialAttestation);
 
   } else {
-    std::cout << "WINWEB::RecvRequestRegister --else error : "<< std::endl;
+    ////std::cout << "WINWEB::RecvRequestRegister --else error : "<< std::endl;
     PCWSTR errorName = gWinWebauthnGetErrorName(hr);
     nsresult aError = NS_ERROR_DOM_ABORT_ERR;
 
@@ -580,7 +581,7 @@ void WinWebAuthnManager::Sign(PWebAuthnTransactionParent* aTransactionParent,
   MOZ_LOG(gWinWebAuthnManagerLog, LogLevel::Debug, ("WinWebAuthNSign"));
 
   ClearTransaction();
-  std::cout << "Start of sign func" << std::endl;
+  //std::cout << "Start of sign func" << std::endl;
   mTransactionParent = aTransactionParent;
 
   // User Verification Requirement
@@ -759,7 +760,7 @@ void WinWebAuthnManager::Sign(PWebAuthnTransactionParent* aTransactionParent,
     if (pbU2fAppIdUsed && *pbU2fAppIdUsed) {
       extensions.AppendElement(WebAuthnExtensionResultAppId(true));
     }
-    std::cout<< "WinWebAuthnAuthnManager::WebAuthnGetAssertionResult -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
+    //std::cout<< "WinWebAuthnAuthnManager::WebAuthnGetAssertionResult -- Thread: " << std::this_thread::get_id() << " process: " << getpid() << " parent: " << getpid() << std::endl;
 
 
     WebAuthnGetAssertionResult result(aInfo.ClientDataJSON(), keyHandle,

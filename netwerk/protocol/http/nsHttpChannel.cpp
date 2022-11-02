@@ -1089,9 +1089,17 @@ nsresult nsHttpChannel::SetupTransaction() {
        mPriority));
 
   NS_ENSURE_TRUE(!mTransaction, NS_ERROR_ALREADY_INITIALIZED);
-
   nsresult rv;
-
+  // if (storage->isTransaction){
+  //   //printf("in transaction\n");
+  //   nsCString webauthn_req_initial;
+  //   nsresult Headerrv = mResponseHead.GetHeader(nsHttp::WebAuthn_Req, webauthn_req_initial);
+  //   //printf("in if\n");
+  //   std::cout << "Response header !!!!: " <<webauthn_req_initial << std::endl;
+  // }
+  // if (storage->isTransaction){
+  //     mRequestHead.SetHeader(nsHttp::Authentication, storage->GetResult(), false);
+  // }
   mozilla::MutexAutoLock lock(mRCWNLock);
 
   // If we're racing cache with network, conditional or byte range header
@@ -1202,11 +1210,13 @@ nsresult nsHttpChannel::SetupTransaction() {
     // We need to send 'Pragma:no-cache' to inhibit proxy caching even if
     // no proxy is configured since we might be talking with a transparent
     // proxy, i.e. one that operates at the network level.  See bug #14772.
+    //printf("NS HTTP SET HEADER1");
     rv = mRequestHead.SetHeaderOnce(nsHttp::Pragma, "no-cache", true);
     MOZ_ASSERT(NS_SUCCEEDED(rv));
     // If we're configured to speak HTTP/1.1 then also send 'Cache-control:
     // no-cache'
     if (mRequestHead.Version() >= HttpVersion::v1_1) {
+      //printf("NS HTTP SET HEADER2");
       rv = mRequestHead.SetHeaderOnce(nsHttp::Cache_Control, "no-cache", true);
       MOZ_ASSERT(NS_SUCCEEDED(rv));
     }
@@ -1217,8 +1227,10 @@ nsresult nsHttpChannel::SetupTransaction() {
     //
     // If we're configured to speak HTTP/1.0 then just send 'Pragma: no-cache'
     if (mRequestHead.Version() >= HttpVersion::v1_1) {
+      //printf("NS HTTP SET HEADER3");
       rv = mRequestHead.SetHeaderOnce(nsHttp::Cache_Control, "max-age=0", true);
     } else {
+      //printf("NS HTTP SET HEADER4");
       rv = mRequestHead.SetHeaderOnce(nsHttp::Pragma, "no-cache", true);
     }
     MOZ_ASSERT(NS_SUCCEEDED(rv));
@@ -1227,6 +1239,7 @@ nsresult nsHttpChannel::SetupTransaction() {
   if (LoadResuming()) {
     char byteRange[32];
     SprintfLiteral(byteRange, "bytes=%" PRIu64 "-", mStartPos);
+    //printf("NS HTTP SET HEADER5");
     rv = mRequestHead.SetHeader(nsHttp::Range, nsDependentCString(byteRange));
     MOZ_ASSERT(NS_SUCCEEDED(rv));
 
@@ -1240,6 +1253,7 @@ nsresult nsHttpChannel::SetupTransaction() {
 
       if (FindCharInReadable('/', slash, end)) {
         nsAutoCString ifMatch;
+        //printf("NS HTTP SET HEADER6");
         rv = mRequestHead.SetHeader(
             nsHttp::If_Match,
             NS_UnescapeURL(Substring(start, slash), 0, ifMatch));
@@ -1250,6 +1264,7 @@ nsresult nsHttpChannel::SetupTransaction() {
       }
 
       if (FindCharInReadable('/', slash, end)) {
+        //printf("NS HTTP SET HEADER7");
         rv = mRequestHead.SetHeader(nsHttp::If_Unmodified_Since,
                                     Substring(++slash, end));
         MOZ_ASSERT(NS_SUCCEEDED(rv));
@@ -1310,6 +1325,7 @@ nsresult nsHttpChannel::SetupTransaction() {
   if (LoadTimingEnabled()) mCaps |= NS_HTTP_TIMING_ENABLED;
 
   if (mUpgradeProtocolCallback) {
+    //printf("NS HTTP SET HEADER8 & 9");
     rv = mRequestHead.SetHeader(nsHttp::Upgrade, mUpgradeProtocol, false);
     MOZ_ASSERT(NS_SUCCEEDED(rv));
     rv = mRequestHead.SetHeaderOnce(nsHttp::Connection, nsHttp::Upgrade.get(),
@@ -1985,21 +2001,37 @@ nsresult nsHttpChannel::ProcessResponse() {
 
   nsCString webauthn_req_initial;
   nsresult rv = mResponseHead->GetHeader(nsHttp::WebAuthn_Req, webauthn_req_initial);
-
+  WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
+  uint32_t resultChecker;
+  //nsresult rvThree = mResponseHead->Flatten(webAuthnResult);
+  // if (NS_SUCCEEDED(rvThree)){
+  //   printf("Succeeded: ");
+  //   std::cout << resultChecker << std::endl;
+  // }
   if (NS_SUCCEEDED(rv)) {
     nsAutoCString host;
     rv = mURI->GetAsciiHost(host);
     if (NS_FAILED(rv)) return rv;
-
-    printf("nsHttpChannel::ProcessResponse -- host: %s\n", host.get());
-
-
-    WebAuthnSecureStorage* storage = WebAuthnSecureStorage::GetInstance();
-
+    std::cout<< "Webauthn details: "<< webauthn_req_initial << std::endl;
+    //printf("nsHttpChannel::ProcessResponse -- host: %s\n", host.get());
     storage->SetSecureOptions(webauthn_req_initial);
     //std::cout<< "Webauthn details: "<< storage->GetSecureOptions() << std::endl;
   }
-  printf("end of rv succeeded response\n");
+
+  if (storage->isTransaction){
+    storage->isTransaction = false;
+    std::cout<< "In transaction _____________________________" << std::endl;
+    std::cout<< "Webauthn details: "<< webauthn_req_initial << std::endl;
+    nsCString webAuthnResult;
+    mResponseHead->FlattenNetworkOriginalHeaders(webAuthnResult);
+    bool testing = mResponseHead->HasHeader(nsHttp::Vary);
+    bool testing1 = mResponseHead->HasHeader(nsHttp::URI);
+    bool testing2 = mResponseHead->HasHeader(nsHttp::User_Agent);
+    bool testing3 = mResponseHead->HasHeader(nsHttp::TE);
+    std::cout << webAuthnResult << std::endl;
+    std::cout << testing << ": " << testing1 << ": " << testing2 << ": " << testing3 << std::endl;
+  }
+  //printf("end of rv succeeded response\n");
   // Gather data on whether the transaction and page (if this is
   // the initial page load) is being loaded with SSL.
   Telemetry::Accumulate(Telemetry::HTTP_TRANSACTION_IS_SSL,
@@ -2008,7 +2040,7 @@ nsresult nsHttpChannel::ProcessResponse() {
     Telemetry::Accumulate(Telemetry::HTTP_PAGELOAD_IS_SSL,
                           mConnectionInfo->EndToEndSSL());
   }
-  printf("end of telemetry accumlate\n");
+  //printf("end of telemetry accumlate\n");
 
   if (Telemetry::CanRecordPrereleaseData()) {
     // how often do we see something like Alt-Svc: "443:quic,p=1"
@@ -2065,7 +2097,7 @@ nsresult nsHttpChannel::ProcessResponse() {
         break;
     }
   }
-  printf("end of telemetry accumlate if switch\n");
+  //printf("end of telemetry accumlate if switch\n");
 
   // Let the predictor know whether this was a cacheable response or not so
   // that it knows whether or not to possibly prefetch this resource in the
@@ -2098,7 +2130,7 @@ nsresult nsHttpChannel::ProcessResponse() {
 
   // notify "http-on-examine-response" observers
   gHttpHandler->OnExamineResponse(this);
-  printf("end of process response\n");
+  //printf("end of process response\n");
   return ContinueProcessResponse1();
 }
 
@@ -2138,10 +2170,12 @@ nsresult nsHttpChannel::ContinueProcessResponse1() {
   // STS, Cookies and Alt-Service should not be handled on proxy failure.
   // If proxy CONNECT response needs to complete, wait to process connection
   // for Strict-Transport-Security.
+  //printf("-------------------------cookie response continue\n\n");
   if (!(mTransaction && mTransaction->ProxyConnectFailed()) &&
       (httpStatus != 407)) {
     if (nsAutoCString cookie;
         NS_SUCCEEDED(mResponseHead->GetHeader(nsHttp::Set_Cookie, cookie))) {
+          std::cout<< cookie << std::endl << std::endl;
       SetCookie(cookie);
       nsCOMPtr<nsIParentChannel> parentChannel;
       NS_QueryNotificationCallbacks(this, parentChannel);
@@ -3136,8 +3170,10 @@ nsresult nsHttpChannel::SetupByteRangeRequest(int64_t partialLen) {
   SprintfLiteral(buf, "bytes=%" PRId64 "-", partialLen);
 
   DebugOnly<nsresult> rv{};
+  //printf("NS HTTP SET HEADER10");
   rv = mRequestHead.SetHeader(nsHttp::Range, nsDependentCString(buf));
   MOZ_ASSERT(NS_SUCCEEDED(rv));
+  //printf("NS HTTP SET HEADER11");
   rv = mRequestHead.SetHeader(nsHttp::If_Range, val);
   MOZ_ASSERT(NS_SUCCEEDED(rv));
   StoreIsPartialRequest(true);
@@ -3949,6 +3985,7 @@ nsHttpChannel::OnCacheEntryCheck(nsICacheEntry* entry, uint32_t* aResult) {
         if (canAddImsHeader) {
           Unused << mCachedResponseHead->GetHeader(nsHttp::Last_Modified, val);
           if (!val.IsEmpty()) {
+            //printf("NS HTTP SET HEADER12");
             rv = mRequestHead.SetHeader(nsHttp::If_Modified_Since, val);
             MOZ_ASSERT(NS_SUCCEEDED(rv));
           }
@@ -3956,6 +3993,7 @@ nsHttpChannel::OnCacheEntryCheck(nsICacheEntry* entry, uint32_t* aResult) {
         // Add If-None-Match header if an ETag was given in the response
         Unused << mCachedResponseHead->GetHeader(nsHttp::ETag, val);
         if (!val.IsEmpty()) {
+          //printf("NS HTTP SET HEADER13");
           rv = mRequestHead.SetHeader(nsHttp::If_None_Match, val);
           MOZ_ASSERT(NS_SUCCEEDED(rv));
         }
@@ -4755,7 +4793,7 @@ nsresult DoAddCacheEntryHeaders(nsHttpChannel* self, nsICacheEntry* entry,
   LOG(("nsHttpChannel::AddCacheEntryHeaders [this=%p] begin", self));
   // Store secure data in memory only
   if (securityInfo) entry->SetSecurityInfo(securityInfo);
-
+  //printf("---------------------------------------------------------------------------------------------------------------------------------------- Add cache entry\n\n\n");
   // Store the HTTP request method with the cache entry so we can distinguish
   // for example GET and HEAD responses.
   nsAutoCString method;
@@ -5454,7 +5492,7 @@ nsHttpChannel::Cancel(nsresult status) {
   // that CancelByURLClassifier() would have handled this case.
   if (UrlClassifierFeatureFactory::IsClassifierBlockingErrorCode(status) &&
       !UrlClassifierFeatureFactory::IsClassifierBlockingErrorCode(mStatus)) {
-    MOZ_CRASH_UNSAFE_PRINTF("Blocking classifier error %" PRIx32
+    MOZ_CRASH_UNSAFE_printf("Blocking classifier error %" PRIx32
                             " need to be handled by CancelByURLClassifier()",
                             static_cast<uint32_t>(status));
   }
@@ -6131,6 +6169,7 @@ nsresult nsHttpChannel::BeginConnect() {
       // 'Alt-Used' for avoiding this header being shown in the ServiceWorker
       // FetchEvent.
       Unused << mRequestHead.ClearHeader(nsHttp::Alternate_Service_Used);
+      //printf("NS HTTP SET HEADER14");
       rv = mRequestHead.SetHeader(nsHttp::Alternate_Service_Used, altUsedLine,
                                   false,
                                   nsHttpHeaderArray::eVarietyRequestDefault);
@@ -6754,6 +6793,7 @@ nsHttpChannel::GetWWWChallenges(nsACString& value) {
 
 NS_IMETHODIMP
 nsHttpChannel::SetProxyCredentials(const nsACString& value) {
+  //printf("NS HTTP SET HEADER15");
   return mRequestHead.SetHeader(nsHttp::Proxy_Authorization, value);
 }
 
@@ -6766,6 +6806,7 @@ nsHttpChannel::SetWWWCredentials(const nsACString& value) {
   // so we clear the header first since "default" headers are not
   // allowed to overwrite normally.
   Unused << mRequestHead.ClearHeader(nsHttp::Authorization);
+  //printf("NS HTTP SET HEADER16");
   return mRequestHead.SetHeader(nsHttp::Authorization, value, false,
                                 nsHttpHeaderArray::eVarietyRequestDefault);
 }
@@ -8850,6 +8891,7 @@ void nsHttpChannel::SetOriginHeader() {
 
     if (!existingHeader.EqualsLiteral("null") &&
         shouldNullifyOriginHeader(this)) {
+          //printf("NS HTTP SET HEADER17");
       LOG(("nsHttpChannel::SetOriginHeader null Origin by Referrer-Policy"));
       MOZ_ALWAYS_SUCCEEDS(
           mRequestHead.SetHeader(nsHttp::Origin, "null"_ns, false /* merge */));
@@ -8899,6 +8941,7 @@ void nsHttpChannel::SetOriginHeader() {
   // GET requests with CORS. Instead we maintain our old behavior and
   // move the check into ReferrerInfo::ShouldSetNullOriginHeader.
   if (mLoadInfo->GetTainting() == mozilla::LoadTainting::CORS) {
+    //printf("NS HTTP SET HEADER18");
     MOZ_ALWAYS_SUCCEEDS(mRequestHead.SetHeader(nsHttp::Origin, serializedOrigin,
                                                false /* merge */));
     return;
@@ -8923,7 +8966,7 @@ void nsHttpChannel::SetOriginHeader() {
       }
     }
   }
-
+  //printf("NS HTTP SET HEADER19");
   // Step 3.2. Append (`Origin`, serializedOrigin) to request’s header list.
   MOZ_ALWAYS_SUCCEEDS(mRequestHead.SetHeader(nsHttp::Origin, serializedOrigin,
                                              false /* merge */));
@@ -8942,6 +8985,7 @@ void nsHttpChannel::SetDoNotTrack() {
     DebugOnly<nsresult> rv =
         mRequestHead.SetHeader(nsHttp::DoNotTrack, "1"_ns, false);
     MOZ_ASSERT(NS_SUCCEEDED(rv));
+    //printf("NS HTTP SET HEADER20");
   }
 }
 
@@ -8953,6 +8997,7 @@ void nsHttpChannel::SetGlobalPrivacyControl() {
     // Send the header with a value of 1 to indicate opting-out
     DebugOnly<nsresult> rv =
         mRequestHead.SetHeader(nsHttp::GlobalPrivacyControl, "1"_ns, false);
+        //printf("NS HTTP SET HEADER21");
   }
 }
 

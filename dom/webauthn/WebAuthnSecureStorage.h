@@ -15,6 +15,15 @@
 #include "nsString.h"
 #include "mozilla/StaticPtr.h"
 #include "nsWeakReference.h"
+#include "mozilla/dom/PWebAuthnTransactionParent.h"
+#include "mozilla/MozPromise.h"
+#include "mozilla/ipc/BackgroundParent.h"
+#include "mozilla/ClearOnShutdown.h"
+#include "mozilla/Unused.h"
+#include "nsTextFormatter.h"
+#include "nsWindowsHelpers.h"
+#include "winwebauthn/webauthn.h"
+#include "WinWebAuthnManager.h"
 
 #include "mozilla/ipc/BackgroundParent.h"
 #include <iostream>
@@ -81,11 +90,13 @@ class WebAuthnSecureStorage final {
   nsCString GetSecureOptions();
   uint64_t GetID();
   void SetInfo(WebAuthnMakeCredentialInfo info);
+  void StoreAttest(WEBAUTHN_CREDENTIAL_ATTESTATION pWebAuthNCredentialAttestation);
   WebAuthnMakeCredentialInfo GetInfo();
   std::string GetKeyValuePairs(std::string keyValue);
   void SerializeSecureOptions();
   void SerializeSecureOptions2();
   void SetResult(WebAuthnMakeCredentialResult result);
+  WebAuthnMakeCredentialResult GetResult();
   void PrintStorage();
   nsCString StringToNsString(std::string input);
   nsAutoCString toAutoCString(std::string input);
@@ -105,10 +116,11 @@ class WebAuthnSecureStorage final {
   // int Release();
   WebAuthnSecureStorage();
   std::string Advance(std::string value);
+  bool isTransaction =false;
  private:
   // static mozilla::StaticRefPtr<WebAuthnSecureStorage> gInstance;
   ~WebAuthnSecureStorage() = default;
-
+  WEBAUTHN_CREDENTIAL_ATTESTATION Attestation;
   std::map<std::string, std::string> responsePairs;
   nsCString Options;
   //StorageStruct responseStorage;

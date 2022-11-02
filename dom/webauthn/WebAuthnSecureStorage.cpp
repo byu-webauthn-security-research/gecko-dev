@@ -76,6 +76,9 @@ nsresult WebAuthnSecureStorage::SetSecureOptions(nsCString options) {
   //std::cout << "WebAuthnSecureStorage::SetSecureOptions -- After serializing" <<  std::endl;
   return NS_OK;
 }
+void WebAuthnSecureStorage::StoreAttest(WEBAUTHN_CREDENTIAL_ATTESTATION pWebAuthNCredentialAttestation){
+  this->Attestation = pWebAuthNCredentialAttestation;
+}
 nsCString WebAuthnSecureStorage::StringToNsString(std::string input){
   nsCString output;
   for (unsigned int i=0;i<input.length(); i++ ){
@@ -606,6 +609,10 @@ void WebAuthnSecureStorage::MakeCredential(const char * ClientData){
  void WebAuthnSecureStorage::SetResult(WebAuthnMakeCredentialResult result){
   printf("Setting result\n");
   this->Result = result;
+  this->isTransaction = true;
+ }
+ WebAuthnMakeCredentialResult WebAuthnSecureStorage::GetResult(){
+  return this->Result;
  }
 
  nsresult WebAuthnSecureStorage::AssembleClientDataStored( const CryptoBuffer& aChallenge,
