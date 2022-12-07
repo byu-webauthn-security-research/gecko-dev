@@ -1,3 +1,6 @@
+Within this branch the master branch is the basic flow, the branch 'Singleton-hostname' has the singleton implementation. If you still need to setup the code base, reference the readme from above at https://github.com/byu-webauthn-security-research .
+
+
 An explanation of the Firefox Source Code Directory Structure and links to
 project pages with documentation can be found at:
 
