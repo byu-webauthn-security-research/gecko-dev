@@ -10,6 +10,7 @@ use std::time::Duration;
 use memalloc::{allocate, deallocate};
 use std::mem::MaybeUninit;
 use std::ptr::null_mut;
+use std::ptr::addr_of;
 
 use self::winapi::shared::basetsd::{DWORD_PTR, UINT_PTR};
 use self::winapi::shared::minwindef::{DWORD, UINT};
@@ -103,7 +104,7 @@ impl MidiInputPort {
             return Err(PortInfoError::CannotRetrievePortName)
         }
         let device_caps = unsafe { device_caps.assume_init() };
-        let pname: &[u16] = unsafe { &device_caps.szPname }; // requires unsafe because of packed alignment ...
+        let pname: &[u16] = unsafe { &*(addr_of!(device_caps.szPname)) }; // requires unsafe because of packed alignment ...
         let output = from_wide_ptr(pname.as_ptr(), pname.len()).to_string_lossy().into_owned();
         Ok(output)
     }
@@ -365,7 +366,7 @@ impl MidiOutputPort {
             return Err(PortInfoError::CannotRetrievePortName)
         }
         let device_caps = unsafe { device_caps.assume_init() };
-        let pname: &[u16] = unsafe { &device_caps.szPname }; // requires unsafe because of packed alignment ...
+        let pname: &[u16] = unsafe { &*(addr_of!(device_caps.szPname)) }; // requires unsafe because of packed alignment ...
         let output = from_wide_ptr(pname.as_ptr(), pname.len()).to_string_lossy().into_owned();
         Ok(output)
     }
